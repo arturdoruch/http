@@ -1,0 +1,15 @@
+{
+    "name": "arturdoruch/http",
+    "description": "HTTP client for making http requests in enjoyable way.",
+    "license": "MIT",
+    "keywords": ["http request", "http client", "curl"],
+    "authors": [
+        {
+            "name": "Artur Doruch",
+            "email": "arturdoruch@interia.pl"
+        }
+    ],
+    "autoload": {
+        "psr-4" : { "ArturDoruch\\Http\\" : "" }
+    }
+}
