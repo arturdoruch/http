@@ -50,6 +50,10 @@ class Client extends AbstractClient
      */
     public function makeRequest($url, RequestParameter $parameters = null, array $options = array())
     {
+        if (!is_string($url)) {
+            throw new \InvalidArgumentException('Parameter $url must be a type of string');
+        }
+
         $options = $this->parseOptions($url, $parameters, $options);
         $this->request($options);
 
