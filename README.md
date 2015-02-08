@@ -4,43 +4,56 @@ HTTP client for making http requests in enjoyable way.
 
 ## Usage
 
-### Make request
-Get http client.
+### Get http client and set request options.
 ```php
-$client = new \ArturDoruch\Http\Client();
-// Optional set number of maximum multi connections. Default is 8.
+// Set custom cURL options to all requests.
+$options = array(
+    'timeout' => 10000,
+    'followlocation' => false
+);
+
+// Set number of maximum multi connections. Default is 8.
+$connections = 8;
+
+$client = new \ArturDoruch\Http\Client($options, $connections);
+
+// Update number of multi connections. 
 $client->setConnections(4);
 ```
+
+### Make request
 Make single request.
 ```php
-$url = 'https://getcomposer.org';
-$collection = $client->makeRequest($url);
+$url = 'http://php.net';
+$collection = $client->request($url);
 ```
 Make multi requests.
 ```php
-$urls = array();
-$collection = $client->makeMultiRequest($urls);
+$urls = array(
+    'https://twitter.com',
+    'http://php.net'
+);
+$collection = $client->multiRequest($urls);
 ```
 
 For send request with HTTP method different then GET or send some parameters 
 use ```ArturDoruch\Http\RequestParameter``` class as second argument in 
-```ArturDoruch\Http\Client::makeRequest``` or ```ArturDoruch\Http\Client::makeMultiRequest``` method.
+```ArturDoruch\Http\Client::request``` or ```ArturDoruch\Http\Client::multiRequest``` method.
 You can set parameters like: parameters, headers, cookies, method and url.
 Parameter url is uses only with single request.
 ```php
 $requestParams = new \ArturDoruch\Http\RequestParameter();
 $requestParams->setMethod('POST')
-    ->setParameters('name', 'value');
+    ->addParameter('name', 'value');
 
-$collection = $client->makeMultiRequest($urls, $requestParams);
+$collection = $client->multiRequest($urls, $requestParams);
 ```
 
 ### Parse and clean response body
 
 If response content-type is type of 'text/html' you can clean HTML content.    
-Method ```cleanHtmlBody``` leaves only ```<body>``` content from HTML document,
+Method ```ArturDoruch\Http\Response\ResponseCollection::cleanHtmlBody``` leaves only ```<body>``` content from HTML document,
 removes all whitespaces and tags like: script, noscript, image, iframe, img, meta, input. 
-
 ```php
 $collection->cleanHtmlBody();
 ```
@@ -48,7 +61,7 @@ $collection->cleanHtmlBody();
 You can specified your own custom class to clean HTML code.
 This class must implements ```ArturDoruch\Http\Response\ResponseBodyInterface```.
 To using this class pass it as second parameter in ```ArturDoruch\Http\Response\ResponseCollection::cleanHtmlBody method```.
-See example class link: ArturDoruch\Http\Response\Body\Html.
+[See example class](Response/Body/Html.php).
 ```php
 $htmlBody = new \ArturDoruch\Http\Response\Body\Html();
 $collection->cleanHtmlBody($htmlBody);
@@ -60,16 +73,20 @@ $collection->parseJsonBody();
 ```
 
 ### Get request response
-Get all response collection. Method ```ArturDoruch\Http\Response\ResponseCollection:get```
-returns ```ArturDoruch\Http\Response\Response``` objects collection.
-If has been making single request ```ArturDoruch\Http\Client::makeRequest```, 
-then will be returned single ```ArturDoruch\Http\Response\Response``` object.
-If has been making multi request ```ArturDoruch\Http\Client::makeMultiRequest```, 
-then will be returned array of ```ArturDoruch\Http\Response\Response``` objects.
+To get response data call method ```ArturDoruch\Http\Response\ResponseCollection:get```
+which returns ```ArturDoruch\Http\Response\Response``` objects collection.
+If has been making single request then will be returned single ```Response``` object, 
+if multi request array of ```Response``` objects.
 ```php
+$collection = $client->makeRequest($url);
+$response = $collection->get();
+var_dump($response);
+
+$collection = $client->makeMultiRequest($urls);
 $responses = $collection->get();
+
 foreach ($responses as $response) {
-    var_dump($response);
+    var_dump($responses);
 }
 ```
 
