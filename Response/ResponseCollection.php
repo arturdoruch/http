@@ -5,6 +5,8 @@
 
 namespace ArturDoruch\Http\Response;
 
+use ArturDoruch\Http\Helper\DOMDocumentHelper;
+
 
 class ResponseCollection
 {
@@ -117,7 +119,7 @@ class ResponseCollection
         for ($i = 0; $i < $this->count; $i++) {
             $response = $this->collection[$i];
             if (strpos($response->getContentType(), 'text/html') === 0) {
-                $body = \Html::DOMRemoveNoise($response->getBody()); // Remove scripts, images etc..
+                $body = DOMDocumentHelper::removeNoise($response->getBody()); // Remove scripts, images etc..
                 $response->setBody($body);
 
                 $html = ($responseBody) ? $responseBody->clean($response) : null;
@@ -125,7 +127,7 @@ class ResponseCollection
                     $html = (preg_match('/<\s*body[^>]*>(.*)<\/body>/si', $body, $matches)) ? $matches[1] : $body;
                 }
 
-                $response->setBody( \Html::DOMRemoveWhiteSpace($html) );
+                $response->setBody( DOMDocumentHelper::removeWhiteSpace($html) );
             }
         }
 

@@ -7,13 +7,14 @@ namespace ArturDoruch\Http\Response\Body;
 
 use ArturDoruch\Http\Response\Response;
 use ArturDoruch\Http\Response\ResponseBodyInterface;
+use ArturDoruch\Http\Helper\DOMDocumentHelper;
 
 class Html implements ResponseBodyInterface
 {
     private $config = array(
-        'orlydb.com' => array('id' => 'releases'),
-        'scenebin.com/music/page' => array(
-            'className' => 'small-list',
+        'php.net' => array('id' => 'layout-content'),
+        'twitter.com' => array(
+            'className' => 'front-card',
             'item' => 0
         ),
     );
@@ -41,13 +42,13 @@ class Html implements ResponseBodyInterface
             if (isset($options['id'])) {
                 $element = $dom->getElementById($options['id']);
             } else if (isset($options['className'])) {
-                $nodes = \Html::DOMGetElementsByClassName($dom, $options['className']);
+                $nodes = DOMDocumentHelper::getElementsByClassName($dom, $options['className']);
                 $item = isset($options['item']) ? $options['item'] : 0;
                 $element = $nodes->item($item);
             }
         }
 
-        return $element ? utf8_encode(\Html::DOMInnerHTML($element)) : null;
+        return $element ? utf8_encode(DOMDocumentHelper::getInnerHTML($element)) : null;
     }
 }
  

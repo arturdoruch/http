@@ -19,7 +19,10 @@ class Client extends AbstractClient
     private $cookieFilePath;
 
     /**
-     * @param array       $options        cURL options
+     * @param array       $options        An array with key => value pairs, where key is related to cURL option
+     *                                    constant name without "CURLOPT_" part or constant integer value.
+     *                                    For example to set CURLOPT_TIMEOUT on 15000
+     *                                    pass ['timeout' => 15000] or [13 => 15000].
      * @param int         $connections    Number of multi connections.
      * @param string|null $cookieFilePath Path to file to storage cookie information
      *                                    to sent or retrieve from server.
@@ -44,18 +47,19 @@ class Client extends AbstractClient
     /**
      * @param string           $url
      * @param RequestParameter $parameters
-     * @param array            $options cURL options
+     * @param array            $options     An array with key => value pairs, where key is related to cURL option
+     *                                      constant name without "CURLOPT_" part or constant integer value.
      *
      * @return ResponseCollection
      */
-    public function makeRequest($url, RequestParameter $parameters = null, array $options = array())
+    public function request($url, RequestParameter $parameters = null, array $options = array())
     {
         if (!is_string($url)) {
             throw new \InvalidArgumentException('Parameter $url must be a type of string');
         }
 
         $options = $this->parseOptions($url, $parameters, $options);
-        $this->request($options);
+        $this->sendRequest($options);
 
         return $this->resourceHandler->getResponseCollection();
     }
@@ -63,19 +67,20 @@ class Client extends AbstractClient
     /**
      * @param array            $urls        Collection of urls
      * @param RequestParameter $parameters  Request parameters
-     * @param array            $options     cURL options
+     * @param array            $options     An array with key => value pairs, where key is related to cURL option
+     *                                      constant name without "CURLOPT_" part or constant integer value.
      * @param int              $connections Number of maximum multi connections
      *
      * @return ResponseCollection
      */
-    public function makeMultiRequest(array $urls, RequestParameter $parameters = null, array $options = array(), $connections = null)
+    public function multiRequest(array $urls, RequestParameter $parameters = null, array $options = array(), $connections = null)
     {
         if ($connections) {
             $this->setConnections($connections);
         }
 
         $options = $this->parseOptions(null, $parameters, $options);
-        $this->multiRequest($urls, $options);
+        $this->sendMultiRequest($urls, $options);
 
         return $this->resourceHandler->getResponseCollection();
     }
@@ -88,9 +93,9 @@ class Client extends AbstractClient
      */
     private function parseOptions($url = null, RequestParameter $parameters = null, array $options = array())
     {
-        $options = $options + $this->defaultOptions;
+        $options = $this->validateOptions($options) + $this->defaultOptions;
         $options[CURLOPT_URL] = $url;
-
+        var_dump($options);
         if ($parameters) {
             if ($url = $parameters->getUrl()) {
                 $options[CURLOPT_URL] = $url;
@@ -125,6 +130,7 @@ class Client extends AbstractClient
         return $options;
     }
 
+
     private function setDefaultOptions(array $options)
     {
         $defaultOptions = array(
@@ -139,7 +145,21 @@ class Client extends AbstractClient
             155 => 90000, // TIMEOUT_MS - 90 seconds,
         );
 
-        $this->defaultOptions = $options + $defaultOptions;
+        $this->defaultOptions = $this->validateOptions($options) + $defaultOptions;
+    }
+
+    private function validateOptions(array $options)
+    {
+        $validOptions = array();
+        foreach ($options as $option => $value) {
+            if (!is_numeric($option)) {
+                if ($opt = @constant('CURLOPT_' . strtoupper($option))) {
+                    $validOptions[$opt] = $value;
+                }
+            }
+        }
+
+        return $validOptions;
     }
 
 }

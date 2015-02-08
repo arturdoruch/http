@@ -33,7 +33,7 @@ abstract class AbstractClient
      * @param array $options cURL options
      * @return mixed
      */
-    protected function request(array $options)
+    protected function sendRequest(array $options)
     {
         $this->resourceHandler->setCollection();
         
@@ -47,7 +47,7 @@ abstract class AbstractClient
     }
 
 
-    protected function multiRequest(array $urls, array $options)
+    protected function sendMultiRequest(array $urls, array $options)
     {
         $this->resourceHandler->setCollection(true);
         $this->index = 0;
