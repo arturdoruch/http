@@ -3,7 +3,7 @@
 HTTP client for making http requests in enjoyable way.
 
 ## Installation
-Via composer.
+Via composer. Add this lines into composer.json file.
 ```json
 {
     "require": {
@@ -48,7 +48,7 @@ $collection = $client->request($url);
 Make multi requests.
 ```php
 $urls = array(
-    'https://twitter.com',
+    'http://twitter.com',
     'http://php.net'
 );
 $collection = $client->multiRequest($urls);

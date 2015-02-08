@@ -95,7 +95,7 @@ class Client extends AbstractClient
     {
         $options = $this->validateOptions($options) + $this->defaultOptions;
         $options[CURLOPT_URL] = $url;
-        var_dump($options);
+
         if ($parameters) {
             if ($url = $parameters->getUrl()) {
                 $options[CURLOPT_URL] = $url;
