@@ -36,6 +36,7 @@ $collection = $client->makeMultiRequest($urls, $requestParams);
 ```
 
 ### Parse and clean response body
+
 If response content-type is type of 'text/html' you can clean HTML content.    
 Method ```cleanHtmlBody``` leaves only ```<body>``` content from HTML document,
 removes all whitespaces and tags like: script, noscript, image, iframe, img, meta, input. 
@@ -62,7 +63,7 @@ $collection->parseJsonBody();
 Get all response collection. Method ```ArturDoruch\Http\Response\ResponseCollection:get```
 returns ```ArturDoruch\Http\Response\Response``` objects collection.
 If has been making single request ```ArturDoruch\Http\Client::makeRequest```, 
-then will be returned single ```ArturDoruch\Http\Response\Response object object```.
+then will be returned single ```ArturDoruch\Http\Response\Response``` object.
 If has been making multi request ```ArturDoruch\Http\Client::makeMultiRequest```, 
 then will be returned array of ```ArturDoruch\Http\Response\Response``` objects.
 ```php
