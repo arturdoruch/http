@@ -8,25 +8,25 @@ HTTP client for making http requests in enjoyable way.
 Get http client.
 ```php
 $client = new \ArturDoruch\Http\Client();
+// Set number of maximum multi connections. Default is 8.
+$client->setConnections(4);
 ```
-
 Make single request.
 ```php
 $url = 'https://getcomposer.org';
 $collection = $client->makeRequest($url);
 ```
-
 Make multi requests.
 ```php
 $urls = array();
 $collection = $client->makeRequest($urls);
 ```
 
-For send request with HTTP method different then GET, or send some parameters 
+For send request with HTTP method different then GET or send some parameters 
 use ArturDoruch\Http\RequestParameter class as second argument in 
-ArturDoruch\Http\Client::makeRequest or ArturDoruch\Http\Client::makeMultiRequest.
-You can set: parameters, headers, cookies, method and url.
-Parameter url in ArturDoruch\Http\RequestParameter is uses only in single request.
+ArturDoruch\Http\Client::makeRequest or ArturDoruch\Http\Client::makeMultiRequest method.
+You can set parameters like: parameters, headers, cookies, method and url.
+Parameter url is uses only with single request.
 ```php
 $requestParams = new \ArturDoruch\Http\RequestParameter();
 $requestParams->setMethod('POST')
@@ -36,11 +36,21 @@ $collection = $client->makeMultiRequest($urls, $requestParams);
 ```
 
 ### Parse and clean response body
-If response resource content-type is type of 'text/html' you can clean HTML content.    
-Method writing below leaves only tag <body> content from HTML document.
+If response content-type is type of 'text/html' you can clean HTML content.    
+Method cleanHtmlBody leaves only tag ```html<body>``` content from HTML document.
 Removes all whitespaces, and tags like: script, noscript, image, iframe, img, meta, input. 
+
 ```php
 $collection->cleanHtmlBody();
+```
+
+You can specified your own custom class to clean HTML code.
+This class must implements ArturDoruch\Http\Response\ResponseBodyInterface.
+To using this class pass it as second parameter in ArturDoruch\Http\Response\ResponseCollection::cleanHtmlBody method.
+See example ArturDoruch\Http\Response\Body\Html.
+```php
+$htmlBody = new \ArturDoruch\Http\Response\Body\Html();
+$collection->cleanHtmlBody($htmlBody);
 ```
 
 If response body have a json format, you can parse it into associative array.
@@ -85,5 +95,3 @@ Exposed all property in JSON or array representation.
 ```php
 $collection->exposeAll();
 ```
-
-## Example
