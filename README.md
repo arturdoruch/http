@@ -40,7 +40,7 @@ For send request with HTTP method different then GET or send some parameters
 use ```ArturDoruch\Http\RequestParameter``` class as second argument in 
 ```ArturDoruch\Http\Client::request``` or ```ArturDoruch\Http\Client::multiRequest``` method.
 You can set parameters like: parameters, headers, cookies, method and url.
-Parameter url is uses only with single request.
+Parameter url is used only with single request.
 ```php
 $requestParams = new \ArturDoruch\Http\RequestParameter();
 $requestParams->setMethod('POST')
@@ -60,7 +60,7 @@ $collection->cleanHtmlBody();
 
 You can specified your own custom class to clean HTML code.
 This class must implements ```ArturDoruch\Http\Response\ResponseBodyInterface```.
-To using this class pass it as second parameter in ```ArturDoruch\Http\Response\ResponseCollection::cleanHtmlBody method```.
+To using this class pass it as second parameter in ```ArturDoruch\Http\Response\ResponseCollection::cleanHtmlBody``` method.
 [See example class](Response/Body/Html.php).
 ```php
 $htmlBody = new \ArturDoruch\Http\Response\Body\Html();
@@ -78,11 +78,11 @@ which returns ```ArturDoruch\Http\Response\Response``` objects collection.
 If has been making single request then will be returned single ```Response``` object, 
 if multi request array of ```Response``` objects.
 ```php
-$collection = $client->makeRequest($url);
+$collection = $client->request($url);
 $response = $collection->get();
 var_dump($response);
 
-$collection = $client->makeMultiRequest($urls);
+$collection = $client->multiRequest($urls);
 $responses = $collection->get();
 
 foreach ($responses as $response) {
@@ -103,8 +103,11 @@ $arrayResponse = $collection->toArray();
 
 If you going to get response collection in json or array representation, you can
 determined which property should be exposed.
-As default are exposed properties: headers, httpCode, body.
-Available properties are: headers, httpCode, body, effectiveUrl, url, contentType, redirects, errorMsg, errorNumber
+As default are exposed properties:
+####headers, httpCode, body
+Available properties are: 
+####headers, httpCode, body, effectiveUrl, url, contentType, redirects, errorMsg, errorNumber
+
 ```php
 $collection->expose(array('httpCode', 'body', 'effectiveUrl'));
 ```
