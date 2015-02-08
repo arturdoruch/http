@@ -104,9 +104,9 @@ $arrayResponse = $collection->toArray();
 If you going to get response collection in json or array representation, you can
 determined which property should be exposed.
 As default are exposed properties:
-####headers, httpCode, body
+<b>headers, httpCode, body</b>.
 Available properties are: 
-####headers, httpCode, body, effectiveUrl, url, contentType, redirects, errorMsg, errorNumber
+<b>headers, httpCode, body, effectiveUrl, url, contentType, redirects, errorMsg, errorNumber</b>.
 
 ```php
 $collection->expose(array('httpCode', 'body', 'effectiveUrl'));
