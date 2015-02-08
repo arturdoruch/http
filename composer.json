@@ -2,7 +2,7 @@
     "name": "arturdoruch/http",
     "description": "HTTP client for making http requests in enjoyable way.",
     "license": "MIT",
-    "keywords": ["http request", "http client", "curl"],
+    "keywords": ["http request", "http client", "curl", "multi requests"],
     "authors": [
         {
             "name": "Artur Doruch",

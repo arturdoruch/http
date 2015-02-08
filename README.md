@@ -2,6 +2,24 @@
 
 HTTP client for making http requests in enjoyable way.
 
+## Installation
+Via composer.
+```json
+{
+    "require": {
+        ...
+        "arturdoruch/http": "~1.0"
+    },
+    "repositories": [
+        ...
+        {
+            "type": "vcs",
+            "url": "https://github.com/arturdoruch/Http"
+        }
+    ]
+}
+```
+
 ## Usage
 
 ### Get http client and set request options.
