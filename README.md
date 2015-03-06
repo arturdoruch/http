@@ -108,7 +108,7 @@ foreach ($responses as $response) {
 }
 ```
 
-### Convert response to JSON a array representation
+### Convert response to JSON or array representation
 You can easy convert ```ArturDoruch\Http\Response\Response``` objects collection
 into json representation
 ```php
