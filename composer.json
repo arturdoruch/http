@@ -9,6 +9,10 @@
             "email": "arturdoruch@interia.pl"
         }
     ],
+    "require": {
+        "php": ">=5.3.3",
+        "arturdoruch/util": "dev-master"
+    },
     "autoload": {
         "psr-4" : { "ArturDoruch\\Http\\" : "" }
     }

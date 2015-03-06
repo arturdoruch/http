@@ -7,7 +7,7 @@ namespace ArturDoruch\Http\Response\Body;
 
 use ArturDoruch\Http\Response\Response;
 use ArturDoruch\Http\Response\ResponseBodyInterface;
-use ArturDoruch\Http\Helper\DOMDocumentHelper;
+use ArturDoruch\Http\Util\HtmlUtils;
 
 class Html implements ResponseBodyInterface
 {
@@ -42,13 +42,13 @@ class Html implements ResponseBodyInterface
             if (isset($options['id'])) {
                 $element = $dom->getElementById($options['id']);
             } else if (isset($options['className'])) {
-                $nodes = DOMDocumentHelper::getElementsByClassName($dom, $options['className']);
+                $nodes = HtmlUtils::getElementsByClassName($dom, $options['className']);
                 $item = isset($options['item']) ? $options['item'] : 0;
                 $element = $nodes->item($item);
             }
         }
 
-        return $element ? utf8_encode(DOMDocumentHelper::getInnerHTML($element)) : null;
+        return $element ? utf8_encode(HtmlUtils::getInnerHTML($element)) : null;
     }
 }
  

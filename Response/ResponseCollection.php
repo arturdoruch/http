@@ -5,8 +5,7 @@
 
 namespace ArturDoruch\Http\Response;
 
-use ArturDoruch\Http\Helper\DOMDocumentHelper;
-
+use ArturDoruch\Http\Util\HtmlUtils;
 
 class ResponseCollection
 {
@@ -109,9 +108,16 @@ class ResponseCollection
      * script, noscript, image, iframe, img, meta, input.
      *
      * @param ResponseBodyInterface $responseBody Provides custom ways to clearing HTML.
+     * @param bool $removeHead  Removes <head> tag and leaves only <body> content.
+     * @param bool $removeNoise Removes comments and unwanted tags like:
+     *                          script, noscript, image, iframe, img, meta, input.
+     *
+     * @param bool $removeImages
+     * @param bool $removeWhiteSpaces
+     *
      * @return $this;
      */
-    public function cleanHtmlBody(ResponseBodyInterface $responseBody = null)
+    public function cleanHtmlBody(ResponseBodyInterface $responseBody = null, $removeHead = true, $removeNoise = true, $removeImages = true, $removeWhiteSpaces = true)
     {
         $this->sortCollection();
 
@@ -119,15 +125,28 @@ class ResponseCollection
         for ($i = 0; $i < $this->count; $i++) {
             $response = $this->collection[$i];
             if (strpos($response->getContentType(), 'text/html') === 0) {
-                $body = DOMDocumentHelper::removeNoise($response->getBody()); // Remove scripts, images etc..
-                $response->setBody($body);
+                $body = $response->getBody();
 
-                $html = ($responseBody) ? $responseBody->clean($response) : null;
-                if (!$html) {
-                    $html = (preg_match('/<\s*body[^>]*>(.*)<\/body>/si', $body, $matches)) ? $matches[1] : $body;
+                if ($removeWhiteSpaces === true) {
+                    HtmlUtils::removeWhiteSpace($body);
                 }
 
-                $response->setBody( DOMDocumentHelper::removeWhiteSpace($html) );
+                if ($removeNoise === true) {
+                    HtmlUtils::removeNoise($body, $removeImages);
+                }
+
+                if ($responseBody) {
+                    $response->setBody($body);
+                    $body = $responseBody->clean($response);
+                }
+
+                if ($removeHead === true) {
+                    if (preg_match('/<\s*body[^>]*>(.*)<\/body>/si', $body, $matches)) {
+                        $body = $matches[1];
+                    }
+                }
+
+                $response->setBody($body);
             }
         }
 
