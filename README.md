@@ -9,14 +9,7 @@ Via composer. Add this lines into composer.json file.
     "require": {
         ...
         "arturdoruch/http": "~1.0"
-    },
-    "repositories": [
-        ...
-        {
-            "type": "vcs",
-            "url": "https://github.com/arturdoruch/Http"
-        }
-    ]
+    }
 }
 ```
 

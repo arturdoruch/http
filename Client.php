@@ -5,24 +5,25 @@
 
 namespace ArturDoruch\Http;
 
+use ArturDoruch\Http\Curl\Options;
 use ArturDoruch\Http\Response\ResponseCollection;
+
 
 class Client extends AbstractClient
 {
     /**
-     * @var array Default cURL options
+     * @var Options
      */
-    private $defaultOptions;
-    /**
-     * @var string
-     */
-    private $cookieFile;
+    private $options;
 
     /**
      * @var RequestParameter
      */
     private $requestParameter;
 
+    /**
+     * @var array
+     */
     private $parameters = array(
         'parameters' => array(),
         'headers' => array(),
@@ -41,10 +42,11 @@ class Client extends AbstractClient
      */
     public function __construct(array $options = array(), $connections = 8, $cookieFile = null)
     {
-        $this->cookieFile = $cookieFile ?: __DIR__ . '/cookies.txt';
-        $this->setDefaultOptions($options);
-        $this->setConnections($connections);
+        $this->options = new Options($cookieFile);
+        $this->options->setDefault($options);
+
         $this->requestParameter = new RequestParameter();
+        $this->setConnections($connections);
 
         parent::__construct();
     }
@@ -62,7 +64,7 @@ class Client extends AbstractClient
      */
     public function setCookieFile($cookieFile)
     {
-        $this->cookieFile = $cookieFile;
+        $this->options->setCookieFile($cookieFile);
     }
 
     /**
@@ -81,7 +83,7 @@ class Client extends AbstractClient
             );
         }
 
-        $options = $this->parseOptions($url, $parameters, $options);
+        $options = $this->options->parse($url, $parameters, $options);
         $this->sendRequest($options);
 
         return $this->resourceHandler->getResponseCollection();
@@ -102,7 +104,7 @@ class Client extends AbstractClient
             $this->setConnections($connections);
         }
 
-        $options = $this->parseOptions(null, $parameters, $options);
+        $options = $this->options->parse(null, $parameters, $options);
         $this->sendMultiRequest($urls, $options);
 
         return $this->resourceHandler->getResponseCollection();
@@ -152,7 +154,7 @@ class Client extends AbstractClient
     private function setRequestParameters($url, $method, array $parameters)
     {
         $parameters = array_merge($this->parameters, $parameters);
-        $this->setOptions($parameters['options']);
+        $this->options->set($parameters['options']);
 
         $this->requestParameter
             ->setUrl($url)
@@ -163,98 +165,6 @@ class Client extends AbstractClient
             ->setHeaders($parameters['headers']);
 
         return $this->requestParameter;
-    }
-
-    /**
-     * @param string           $url
-     * @param RequestParameter $parameters
-     * @param array            $options
-     * @return array
-     */
-    private function parseOptions($url = null, RequestParameter $parameters = null, array $options = array())
-    {
-        $options = $this->setOptions($options);
-        $options[CURLOPT_URL] = $url;
-
-        if ($parameters) {
-            if ($url = $parameters->getUrl()) {
-                $options[CURLOPT_URL] = $url;
-            }
-
-            if ($params = $parameters->getParameters()) {
-                $method = $parameters->getMethod();
-                if ($method == 'POST') {
-                    $params = http_build_query($params);
-
-                    $options[CURLOPT_POSTFIELDS] = $params;
-                    $options[CURLOPT_POST] = count($params);
-                } elseif ($method == 'GET') {
-                    $options[CURLOPT_URL] .= '?' . http_build_query($params);
-                } else {
-                    //$options[CURLOPT_CUSTOMREQUEST] = "POST";
-                    //$options[CURLOPT_VERBOSE] = true;
-                }
-            }
-
-            if ($cookies = $parameters->getCookies()) {
-                if (count($cookies) === 1) {
-                    $options[CURLOPT_COOKIE] = $cookies[0];
-                } else {
-                    // ToDo Write $cookies in cookies.txt file ?
-                }
-            }
-
-            if ($headers = $parameters->getHeaders()) {
-                $options[CURLOPT_HTTPHEADER] = $headers;
-            }
-        }
-
-        return $options;
-    }
-
-    private function setDefaultOptions(array $options)
-    {
-        $defaultOptions = array(
-            CURLOPT_USERAGENT => isset($_SERVER['HTTP_USER_AGENT'])
-                ? $_SERVER['HTTP_USER_AGENT']
-                : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 Firefox/35.0',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_HEADER => true,
-            CURLOPT_ENCODING => true,
-            CURLOPT_COOKIEJAR => $this->cookieFile,
-            CURLOPT_COOKIEFILE => $this->cookieFile,
-            155 => 90000,
-        );
-
-        $this->defaultOptions = $this->validateOptions($options) + $defaultOptions;
-    }
-
-    /**
-     * Sets cURL options.
-     *
-     * @param array $options
-     * @return array
-     */
-    private function setOptions(array $options)
-    {
-        return $this->defaultOptions = $this->validateOptions($options) + $this->defaultOptions;
-    }
-
-
-    private function validateOptions(array $options)
-    {
-        $validOptions = array();
-        foreach ($options as $option => $value) {
-            if (!is_numeric($option)) {
-                if ($opt = @constant('CURLOPT_' . strtoupper($option))) {
-                    $validOptions[$opt] = $value;
-                }
-            }
-        }
-
-        return $validOptions;
     }
 
 }
