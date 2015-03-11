@@ -8,7 +8,7 @@ Via composer. Add this lines into composer.json file.
 {
     "require": {
         ...
-        "arturdoruch/http": "~1.0"
+        "arturdoruch/http": "~2.0"
     }
 }
 ```
@@ -23,12 +23,9 @@ $options = array(
     'followlocation' => false
 );
 
+$client = new \ArturDoruch\Http\Client($options);
+
 // Set number of maximum multi connections. Default is 8.
-$connections = 8;
-
-$client = new \ArturDoruch\Http\Client($options, $connections);
-
-// Update number of multi connections. 
 $client->setConnections(4);
 ```
 
@@ -115,12 +112,12 @@ $arrayResponse = $collection->toArray();
 If you going to get response collection in json or array representation, you can
 determined which property should be exposed.
 As default are exposed properties:
-<b>headers, httpCode, body</b>.
+<b>headers, statusCode, body</b>.
 Available properties are: 
-<b>headers, httpCode, body, effectiveUrl, url, contentType, redirects, errorMsg, errorNumber</b>.
+<b>headers, statusCode, body, effectiveUrl, url, contentType, redirects, errorMsg, errorNumber</b>.
 
 ```php
-$collection->expose(array('httpCode', 'body', 'effectiveUrl'));
+$collection->expose(array('statusCode', 'body', 'effectiveUrl'));
 ```
 
 Exposed all property in JSON or array representation.

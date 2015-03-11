@@ -36,18 +36,15 @@ class Client extends AbstractClient
      *                                    constant name without "CURLOPT_" part or constant integer value.
      *                                    For example to set CURLOPT_TIMEOUT on 15000
      *                                    pass ['timeout' => 15000] or [13 => 15000].
-     * @param int         $connections    Number of multi connections.
+     *
      * @param bool        $enabledExceptions
-     * @param string|null $cookieFile     Path to file to storage cookie information
-     *                                    to sent or retrieve from server.
      */
-    public function __construct(array $options = array(), $connections = 8, $enabledExceptions = true, $cookieFile = null)
+    public function __construct(array $options = array(), $enabledExceptions = true)
     {
-        $this->options = new Options($cookieFile);
+        $this->options = new Options();
         $this->options->setDefault($options);
 
         $this->requestParameter = new RequestParameter();
-        $this->setConnections($connections);
 
         parent::__construct();
 
@@ -65,7 +62,7 @@ class Client extends AbstractClient
     }
 
     /**
-     * @param $cookieFile
+     * @param string $cookieFile  Path to file to storage cookie information to sent or retrieve from server.
      */
     public function setCookieFile($cookieFile)
     {
