@@ -6,6 +6,7 @@
 namespace ArturDoruch\Http;
 
 use ArturDoruch\Http\Curl\Options;
+
 use ArturDoruch\Http\Response\Response;
 use ArturDoruch\Http\Response\ResponseCollection;
 
@@ -36,7 +37,6 @@ class Client extends AbstractClient
      *                                    constant name without "CURLOPT_" part or constant integer value.
      *                                    For example to set CURLOPT_TIMEOUT on 15000
      *                                    pass ['timeout' => 15000] or [13 => 15000].
-     *
      * @param bool        $enabledExceptions
      */
     public function __construct(array $options = array(), $enabledExceptions = true)
