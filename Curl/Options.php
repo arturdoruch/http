@@ -10,16 +10,21 @@ use ArturDoruch\Http\RequestParameter;
 class Options
 {
     /**
-     * @var array Default cURL options
+     * @var array Default cURL options.
      */
     private $default;
+
+    /*
+     * @var array cURL options to use only once with first request.
+     */
+    //private $requestOptions;
 
     /**
      * @var string
      */
     private $cookieFile;
 
-    public function __construct($cookieFile)
+    public function __construct($cookieFile = null)
     {
         $this->cookieFile = $cookieFile ?: __DIR__ . '/cookies.txt';
     }
@@ -40,7 +45,7 @@ class Options
      */
     public function parse($url = null, RequestParameter $parameters = null, array $options = array())
     {
-        $options = $this->set($options);
+        $options = $this->validate($options) + $this->default;
         $options[CURLOPT_URL] = $url;
 
         if ($parameters) {
@@ -94,37 +99,37 @@ class Options
             CURLOPT_ENCODING => true,
             CURLOPT_COOKIEJAR => $this->cookieFile,
             CURLOPT_COOKIEFILE => $this->cookieFile,
-            155 => 15000,
+            CURLOPT_TIMEOUT => 15000,
         );
 
         $this->default = $this->validate($options) + $defaultOptions;
     }
 
-    public function getOptions()
+    public function getDefault()
     {
         return $this->default;
     }
 
-    /**
-     * Sets cURL options.
-     *
+    /*
      * @param array $options
-     * @return array
      */
-    public function set(array $options)
+    /*public function setRequestOptions(array $options)
     {
-        return $this->default = $this->validate($options) + $this->default;
-    }
-
+        $this->requestOptions = $this->validate($options);
+    }*/
 
     private function validate(array $options)
     {
         $validOptions = array();
         foreach ($options as $option => $value) {
-            if (!is_numeric($option)) {
+            if (strpos($option, 'CURLOPT_') !== false) {
+                $validOptions[$option] = $value;
+            } elseif (is_string($option)) {
                 if ($opt = @constant('CURLOPT_' . strtoupper($option))) {
                     $validOptions[$opt] = $value;
                 }
+            } else {
+                $validOptions[(int) $option] = $value;
             }
         }
 

@@ -25,24 +25,26 @@ class EventManager
      */
     public function enabledHttpErrorListener()
     {
-        $this->addListener(array(new HttpErrorListener(), 'onComplete'));
+        $this->addListener('request.complete', array(new HttpErrorListener(), 'onComplete'));
     }
 
     /**
+     * @param string   $eventName
      * @param callable $listener
      * @param int      $priority
      */
-    public function addListener($listener, $priority = 0)
+    public function addListener($eventName, $listener, $priority = 0)
     {
-        $this->dispatcher->addListener('request.complete', $listener, $priority);
+        $this->dispatcher->addListener($eventName, $listener, $priority);
     }
 
     /**
-     * @param Event $event
+     * @param string $eventName
+     * @param Event  $event
      */
-    public function dispatch(Event $event)
+    public function dispatch($eventName, Event $event)
     {
-        $this->dispatcher->dispatch('request.complete', $event);
+        $this->dispatcher->dispatch($eventName, $event);
     }
 
 }

@@ -140,10 +140,8 @@ class ResponseCollection
                     $body = $responseBody->clean($response);
                 }
 
-                if ($removeHead === true) {
-                    if (preg_match('/<\s*body[^>]*>(.*)<\/body>/si', $body, $matches)) {
-                        $body = $matches[1];
-                    }
+                if ($removeHead === true && preg_match('/<\s*body[^>]*>(.*)<\/body>/si', $body, $matches)) {
+                    $body = $matches[1];
                 }
 
                 $response->setBody($body);

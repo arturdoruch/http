@@ -49,7 +49,7 @@ abstract class AbstractClient
         curl_setopt_array($handle, $options);
 
         curl_exec($handle);
-        $this->resourceHandler->handle($handle, $options[CURLOPT_URL]);
+        $this->resourceHandler->handle($handle, $options[CURLOPT_URL], $this);
 
         curl_close($handle);
     }
@@ -88,7 +88,7 @@ abstract class AbstractClient
                 // This means one of the requests were finished
                 call_user_func_array(
                     array($this->resourceHandler, 'handle'),
-                    array($mhInfo, $this->getTrackingUrl($mhInfo['handle']))
+                    array($mhInfo, $this->getTrackingUrl($mhInfo['handle']), $this)
                 );
 
                 curl_multi_remove_handle($mh, $mhInfo['handle']);

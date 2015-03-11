@@ -28,8 +28,7 @@ class Client extends AbstractClient
     private $parameters = array(
         'parameters' => array(),
         'headers' => array(),
-        'cookie' => null,
-        'options' => array()
+        'cookie' => null
     );
 
     /**
@@ -38,6 +37,7 @@ class Client extends AbstractClient
      *                                    For example to set CURLOPT_TIMEOUT on 15000
      *                                    pass ['timeout' => 15000] or [13 => 15000].
      * @param int         $connections    Number of multi connections.
+     * @param bool        $enabledExceptions
      * @param string|null $cookieFile     Path to file to storage cookie information
      *                                    to sent or retrieve from server.
      */
@@ -73,14 +73,34 @@ class Client extends AbstractClient
     }
 
     /**
+     * Gets default cURL options.
+     *
+     * @return array
+     */
+    public function getDefaultOptions()
+    {
+        return $this->options->getDefault();
+    }
+
+    /**
+     * Sets default cURL options, that will be used in every requests.
+     *
+     * @param array $options
+     */
+    public function setDefaultOptions(array $options)
+    {
+        $this->options->setDefault($options);
+    }
+
+    /**
      * Adds event listener, that will be called after HTTP request is complete.
      *
      * @param callable $listener
-     * @param int $priority
+     * @param int      $priority
      */
     public function addListener($listener, $priority = 0)
     {
-        $this->eventManager->addListener($listener, $priority);
+        $this->eventManager->addListener('request.complete', $listener, $priority);
     }
 
     /**
@@ -140,7 +160,9 @@ class Client extends AbstractClient
      */
     public function get($url, array $parameters = array())
     {
-        return $this->request(null, $this->setRequestParameters($url, 'GET', $parameters));
+        $options = isset($parameters['options']) ? $parameters['options'] : array();
+
+        return $this->request(null, $this->setRequestParameters($url, 'GET', $parameters), $options);
     }
 
     /**
@@ -157,7 +179,9 @@ class Client extends AbstractClient
      */
     public function post($url, array $parameters = array())
     {
-        return $this->request(null, $this->setRequestParameters($url, 'POST', $parameters));
+        $options = isset($parameters['options']) ? $parameters['options'] : array();
+
+        return $this->request(null, $this->setRequestParameters($url, 'POST', $parameters), $options);
     }
 
     /**
@@ -170,7 +194,6 @@ class Client extends AbstractClient
     private function setRequestParameters($url, $method, array $parameters)
     {
         $parameters = array_merge($this->parameters, $parameters);
-        $this->options->set($parameters['options']);
 
         $this->requestParameter
             ->setUrl($url)

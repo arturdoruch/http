@@ -63,12 +63,12 @@ class ResourceHandler
     /**
      * @param resource $handle cURL response resource.
      * @param string   $url    Original target request url.
+     * @param Client
      *
      * @return mixed
      */
-    public function handle($handle, $url)
+    public function handle($handle, $url, $client)
     {
-        // Check if ResponseCollection object was instantiated.
         if ($this->responseCollection === null) {
             throw new \InvalidArgumentException(
                 'Class "ArturDoruch\Http\Response\ResponseCollection" was not instantiated.'
@@ -88,7 +88,8 @@ class ResourceHandler
 
         // Dispatch event
         $this->completeEvent->setResponse($response);
-        $this->eventManager->dispatch($this->completeEvent);
+        $this->completeEvent->setClient($client);
+        $this->eventManager->dispatch('request.complete', $this->completeEvent);
 
         $resourceId = preg_replace('/[^\d]/i', '', $handle);
         $this->responseCollection->add($response, $resourceId);
