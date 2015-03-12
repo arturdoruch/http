@@ -9,6 +9,7 @@ use ArturDoruch\Http\Event\CompleteEvent;
 use ArturDoruch\Http\Event\EventManager;
 use ArturDoruch\Http\Response\Response;
 use ArturDoruch\Http\Response\ResponseCollection;
+use ArturDoruch\Http\Util\ResponseUtils;
 
 
 class ResourceHandler
@@ -75,6 +76,10 @@ class ResourceHandler
             );
         }
 
+        if (empty($url)) {
+            throw new \InvalidArgumentException('Request url is empty!');
+        }
+
         if (isset($handle['handle'])) {
             // Multi request
             $errorNo = $handle['result'];
@@ -110,10 +115,13 @@ class ResourceHandler
         $info = curl_getinfo($handle);
         $content = curl_multi_getcontent($handle);
 
+        $statusCode = $info['http_code'];
+        $reasonPhrase = isset(ResponseUtils::$statusTexts[$statusCode]) ? ResponseUtils::$statusTexts[$statusCode] : '';
+
         $response = clone $this->response;
         $response
-            ->setStatusCode($info['http_code'])
-            ->setReasonPhrase(Util\ResponseUtils::$statusTexts[$info['http_code']])
+            ->setStatusCode($statusCode)
+            ->setReasonPhrase($reasonPhrase)
             ->setBody($content)
             ->setUrl($url)
             ->setEffectiveUrl($info['url'])

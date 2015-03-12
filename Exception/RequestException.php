@@ -14,10 +14,9 @@ class RequestException extends \RuntimeException
      */
     private $response;
 
-    public function __construct($message, Response $response = null, \Exception $previous = null)
+    public function __construct($message, Response $response, \Exception $previous = null)
     {
-        $code = $response ? $response->getStatusCode() : 0;
-        parent::__construct($message, $code, $previous);
+        parent::__construct($message, $response->getStatusCode(), $previous);
         $this->response = $response;
     }
 
@@ -29,12 +28,8 @@ class RequestException extends \RuntimeException
      *
      * @return self
      */
-    public static function create(Response $response = null, \Exception $previous = null)
+    public static function create(Response $response, \Exception $previous = null)
     {
-        if (!$response) {
-            return new self('Error completing request', null, $previous);
-        }
-
         $level = floor($response->getStatusCode() / 100);
         if ($level == '4') {
             $label = 'Client error response';
@@ -57,20 +52,11 @@ class RequestException extends \RuntimeException
     /**
      * Get the associated response
      *
-     * @return Response|null
+     * @return Response
      */
     public function getResponse()
     {
         return $this->response;
     }
 
-    /**
-     * Check if a response was received
-     *
-     * @return bool
-     */
-    public function hasResponse()
-    {
-        return $this->response !== null;
-    }
 }
