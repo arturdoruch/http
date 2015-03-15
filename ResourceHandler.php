@@ -62,13 +62,13 @@ class ResourceHandler
     }
 
     /**
-     * @param resource $handle cURL response resource.
-     * @param string   $url    Original target request url.
+     * @param resource $handle  cURL response resource.
+     * @param Request  $request
      * @param Client
      *
      * @return mixed
      */
-    public function handle($handle, $url, $client)
+    public function handle($handle, Request $request, $client)
     {
         if ($this->responseCollection === null) {
             throw new \InvalidArgumentException(
@@ -76,6 +76,7 @@ class ResourceHandler
             );
         }
 
+        $url = $request->getUrl();
         if (empty($url)) {
             throw new \InvalidArgumentException('Request url is empty!');
         }
@@ -92,9 +93,8 @@ class ResourceHandler
         $response = $this->parseResponse($handle, $url, $errorNo);
 
         // Dispatch event
-        $this->completeEvent->setResponse($response);
-        $this->completeEvent->setClient($client);
-        $this->eventManager->dispatch('request.complete', $this->completeEvent);
+        $this->completeEvent->setData($request, $response, $client);
+        $this->eventManager->dispatch('complete', $this->completeEvent);
 
         $resourceId = preg_replace('/[^\d]/i', '', $handle);
         $this->responseCollection->add($response, $resourceId);

@@ -5,7 +5,7 @@
 
 namespace ArturDoruch\Http;
 
-class RequestParameter
+class Request
 {
     /**
      * @var string
@@ -31,6 +31,11 @@ class RequestParameter
      * @var string
      */
     private $method = 'GET';
+
+    public function __clone()
+    {
+
+    }
 
     /**
      * @return string
@@ -155,7 +160,7 @@ class RequestParameter
      */
     public function getHeader($name)
     {
-        $name = ucfirst($name);
+        //$name = ucfirst($name);
 
         return isset($this->headers[$name]) ? $this->headers[$name] : null;
     }

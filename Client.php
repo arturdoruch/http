@@ -6,10 +6,7 @@
 namespace ArturDoruch\Http;
 
 use ArturDoruch\Http\Curl\Options;
-
-use ArturDoruch\Http\Response\Response;
 use ArturDoruch\Http\Response\ResponseCollection;
-
 
 class Client extends AbstractClient
 {
@@ -19,32 +16,22 @@ class Client extends AbstractClient
     private $options;
 
     /**
-     * @var RequestParameter
+     * @var Request
      */
-    private $requestParameter;
+    private $request;
 
     /**
-     * @var array
-     */
-    private $parameters = array(
-        'parameters' => array(),
-        'headers' => array(),
-        'cookie' => null
-    );
-
-    /**
-     * @param array       $options        An array with key => value pairs, where key is related to cURL option
-     *                                    constant name without "CURLOPT_" part or constant integer value.
-     *                                    For example to set CURLOPT_TIMEOUT on 15000
-     *                                    pass ['timeout' => 15000] or [13 => 15000].
-     * @param bool        $enabledExceptions
+     * @param array  $options  An array with key => value pairs, where key is related to cURL option
+     *                         constant name without "CURLOPT_" part or constant integer value.
+     *                         For example to set CURLOPT_TIMEOUT on 15000
+     *                         pass ['timeout' => 15000] or [13 => 15000].
+     * @param bool   $enabledExceptions
      */
     public function __construct(array $options = array(), $enabledExceptions = true)
     {
         $this->options = new Options();
         $this->options->setDefault($options);
-
-        $this->requestParameter = new RequestParameter();
+        $this->request = new Request();
 
         parent::__construct();
 
@@ -80,7 +67,7 @@ class Client extends AbstractClient
     }
 
     /**
-     * Sets default cURL options, that will be used in every requests.
+     * Sets default cURL options, which will be used in every request.
      *
      * @param array $options
      */
@@ -92,53 +79,52 @@ class Client extends AbstractClient
     /**
      * Adds event listener, that will be called after HTTP request is complete.
      *
+     * @param string   $eventName [complete, end]
      * @param callable $listener
      * @param int      $priority
      */
-    public function addListener($listener, $priority = 0)
+    public function addListener($eventName, $listener, $priority = 0)
     {
-        $this->eventManager->addListener('request.complete', $listener, $priority);
+        $this->eventManager->addListener($eventName, $listener, $priority);
     }
 
     /**
-     * @param string|null      $url
-     * @param RequestParameter $parameters
-     * @param array            $options     An array with key => value pairs, where key is related to cURL option
-     *                                      constant name without "CURLOPT_" part or constant integer value.
+     * @param string|null  $url
+     * @param Request|null $request
+     * @param array        $options  An array with key => value pairs, where key is related to cURL option
+     *                               constant name without "CURLOPT_" part or constant integer value.
      *
-     * @return Response
+     * @return ResponseCollection
      */
-    public function request($url, RequestParameter $parameters = null, array $options = array())
+    public function request($url = null, Request $request = null, array $options = array())
     {
-        if ($url !== null && !is_string($url)) {
-            throw new \InvalidArgumentException(
-                sprintf('Parameter $url must be a type of string. Type of "%s" given.', gettype($url))
-            );
-        }
+        $request = $this->setAndGetRequest($url, $request);
 
-        $options = $this->options->parse($url, $parameters, $options);
-        $this->sendRequest($options);
+        $options = $this->options->parse($request, $options);
+        $this->sendRequest($options, $request);
 
         return $this->resourceHandler->getResponseCollection();
     }
 
     /**
-     * @param array            $urls        Collection of urls
-     * @param RequestParameter $parameters  Request parameters
-     * @param array            $options     An array with key => value pairs, where key is related to cURL option
-     *                                      constant name without "CURLOPT_" part or constant integer value.
-     * @param int              $connections Number of maximum multi connections
+     * @param array   $urls        Collection of urls
+     * @param Request $request     Request parameters
+     * @param array   $options     An array with key => value pairs, where key is related to cURL option
+     *                             constant name without "CURLOPT_" part or constant integer value.
+     * @param int     $connections Number of maximum multi connections
      *
      * @return ResponseCollection
      */
-    public function multiRequest(array $urls, RequestParameter $parameters = null, array $options = array(), $connections = null)
+    public function multiRequest(array $urls, Request $request = null, array $options = array(), $connections = null)
     {
         if ($connections) {
             $this->setConnections($connections);
         }
 
-        $options = $this->options->parse(null, $parameters, $options);
-        $this->sendMultiRequest($urls, $options);
+        $request = $this->setAndGetRequest('array', $request);
+
+        $options = $this->options->parse($request, $options);
+        $this->sendMultiRequest($urls, $options, $request);
 
         return $this->resourceHandler->getResponseCollection();
     }
@@ -147,38 +133,34 @@ class Client extends AbstractClient
      * Makes GET request
      *
      * @param string $url
-     * @param array $parameters
+     * @param array  $parameters
      *  - parameters array
      *  - headers    array
      *  - cookie     string
-     *  - options    array  cURL options
+     * @param array  $options cURL options
      *
      * @return ResponseCollection
      */
-    public function get($url, array $parameters = array())
+    public function get($url, array $parameters = array(), array $options = array())
     {
-        $options = isset($parameters['options']) ? $parameters['options'] : array();
-
-        return $this->request(null, $this->setRequestParameters($url, 'GET', $parameters), $options);
+        return $this->request(null, $this->createRequest($url, 'GET', $parameters), $options);
     }
 
     /**
      * Makes POST request
      *
      * @param string $url
-     * @param array $parameters
+     * @param array  $parameters
      *  - parameters array
      *  - headers    array
      *  - cookie     string
-     *  - options    array  cURL options
+     *  @param array $options cURL options
      *
      * @return ResponseCollection
      */
-    public function post($url, array $parameters = array())
+    public function post($url, array $parameters = array(), array $options = array())
     {
-        $options = isset($parameters['options']) ? $parameters['options'] : array();
-
-        return $this->request(null, $this->setRequestParameters($url, 'POST', $parameters), $options);
+        return $this->request(null, $this->createRequest($url, 'POST', $parameters), $options);
     }
 
     /**
@@ -186,22 +168,73 @@ class Client extends AbstractClient
      * @param string $method
      * @param array $parameters
      *
-     * @return RequestParameter
+     * @return Request
      */
-    private function setRequestParameters($url, $method, array $parameters)
+    public function createRequest($url, $method, array $parameters = array())
     {
-        $parameters = array_merge($this->parameters, $parameters);
-
-        $this->requestParameter
+        $request = clone $this->request;
+        $request
             ->setUrl($url)
-            ->setMethod($method)
-            ->setParameters($parameters['parameters'])
-            ->setCookies(array())
-            ->addCookie($parameters['cookie'])
-            ->setHeaders($parameters['headers']);
+            ->setMethod($method);
 
-        return $this->requestParameter;
+        if (!empty($parameters)) {
+            $parameters = array_merge(
+                array('parameters' => array(), 'cookie' => null, 'headers' => array()),
+                $parameters
+            );
+
+            $request
+                ->setParameters($parameters['parameters'])
+                ->addCookie($parameters['cookie'])
+                ->setHeaders($parameters['headers']);
+        }
+
+        $this->validateUrl($request->getUrl());
+
+        return $request;
     }
+
+    /**
+     * @param null|string  $url
+     * @param Request|null $request
+     *
+     * @return Request
+     */
+    private function setAndGetRequest($url = null, Request $request = null)
+    {
+        if ($request === null) {
+            $request = $this->createRequest($url, 'GET');
+        } elseif (!$request->getUrl()) {
+            $request->setUrl($url);
+        }
+
+        $this->validateUrl($request->getUrl());
+
+        return $request;
+    }
+
+
+    private function validateUrl($url)
+    {
+        if (empty($url)) {
+            throw new \InvalidArgumentException('The "url" parameter cannot be empty.');
+        }
+
+        if (!is_string($url)) {
+            throw new \InvalidArgumentException(sprintf(
+                    'Invalid "url" parameter. Url must be type of string, but got "%s".', gettype($url)
+                ));
+        }
+    }
+
+    /*private function dispatchEndEvent(Request $request, Response $response)
+    {
+        // Dispatch event
+        $endEvent = new EndEvent();
+        $endEvent->setData($request, $response, $this);
+
+        $this->eventManager->dispatch('end', $endEvent);
+    }*/
 
 }
  

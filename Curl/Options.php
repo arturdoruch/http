@@ -5,7 +5,7 @@
 
 namespace ArturDoruch\Http\Curl;
 
-use ArturDoruch\Http\RequestParameter;
+use ArturDoruch\Http\Request;
 
 class Options
 {
@@ -14,10 +14,19 @@ class Options
      */
     private $default;
 
-    /*
-     * @var array cURL options to use only once with first request.
+    /**
+     * Array collection of cURL options with "CURLOPT_" => int pairs.
+     *
+     * @var array
      */
-    //private $requestOptions;
+    private $curlOptConstants = array();
+
+    /**
+     * Array collection of cURL options with int => "CURLOPT_" pairs.
+     *
+     * @var array
+     */
+    private $curlOptConstantsHash = array();
 
     /**
      * @var string
@@ -27,6 +36,7 @@ class Options
     public function __construct($cookieFile = null)
     {
         $this->cookieFile = $cookieFile ?: __DIR__ . '/cookies.txt';
+        $this->setCurlOptConstants();
     }
 
     /**
@@ -38,52 +48,50 @@ class Options
     }
 
     /**
-     * @param string           $url
-     * @param RequestParameter $parameters
+     * @param Request $request
      * @param array            $options
      * @return array
      */
-    public function parse($url = null, RequestParameter $parameters = null, array $options = array())
+    public function parse(Request $request, array $options = array())
     {
         $options = $this->validate($options) + $this->default;
-        $options[CURLOPT_URL] = $url;
+        $options[CURLOPT_URL] = $request->getUrl();
 
-        if ($parameters) {
-            if ($url = $parameters->getUrl()) {
-                $options[CURLOPT_URL] = $url;
+        if ($params = $request->getParameters()) {
+            $method = $request->getMethod();
+            if ($method == 'POST') {
+                $params = http_build_query($params);
+
+                $options[CURLOPT_POSTFIELDS] = $params;
+                $options[CURLOPT_POST] = count($params);
+            } elseif ($method == 'GET') {
+                $options[CURLOPT_URL] .= '?' . http_build_query($params);
+            } else {
+                //$options[CURLOPT_CUSTOMREQUEST] = "POST";
+                //$options[CURLOPT_VERBOSE] = true;
             }
+        }
 
-            if ($params = $parameters->getParameters()) {
-                $method = $parameters->getMethod();
-                if ($method == 'POST') {
-                    $params = http_build_query($params);
-
-                    $options[CURLOPT_POSTFIELDS] = $params;
-                    $options[CURLOPT_POST] = count($params);
-                } elseif ($method == 'GET') {
-                    $options[CURLOPT_URL] .= '?' . http_build_query($params);
-                } else {
-                    //$options[CURLOPT_CUSTOMREQUEST] = "POST";
-                    //$options[CURLOPT_VERBOSE] = true;
-                }
+        if ($cookies = $request->getCookies()) {
+            if (count($cookies) === 1) {
+                $options[CURLOPT_COOKIE] = $cookies[0];
+            } else {
+                // ToDo Write $cookies in cookies.txt file ?
             }
+        }
 
-            if ($cookies = $parameters->getCookies()) {
-                if (count($cookies) === 1) {
-                    $options[CURLOPT_COOKIE] = $cookies[0];
-                } else {
-                    // ToDo Write $cookies in cookies.txt file ?
-                }
-            }
-
-            if ($headers = $parameters->getHeaders()) {
-                $options[CURLOPT_HTTPHEADER] = $headers;
-            }
+        if ($headers = $request->getHeaders()) {
+            $options[CURLOPT_HTTPHEADER] = $headers;
         }
 
         return $options;
     }
 
+    /**
+     * Sets default cURL options, which will be used in every request.
+     *
+     * @param array $options
+     */
     public function setDefault(array $options)
     {
         $defaultOptions = array(
@@ -100,40 +108,58 @@ class Options
             CURLOPT_COOKIEJAR => $this->cookieFile,
             CURLOPT_COOKIEFILE => $this->cookieFile,
             CURLOPT_TIMEOUT => 15000,
+            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4
         );
 
         $this->default = $this->validate($options) + $defaultOptions;
     }
 
+    /**
+     * @return array
+     */
     public function getDefault()
     {
-        return $this->default;
+        $default = array();
+        foreach ($this->default as $number => $value) {
+            $default[$this->curlOptConstantsHash[$number]] = $value;
+        }
+
+        return $default;
     }
 
-    /*
-     * @param array $options
-     */
-    /*public function setRequestOptions(array $options)
-    {
-        $this->requestOptions = $this->validate($options);
-    }*/
 
     private function validate(array $options)
     {
         $validOptions = array();
         foreach ($options as $option => $value) {
+            $opt = $option;
             if (strpos($option, 'CURLOPT_') !== false) {
-                $validOptions[$option] = $value;
+                $option = @constant($option);
             } elseif (is_string($option)) {
-                if ($opt = @constant('CURLOPT_' . strtoupper($option))) {
-                    $validOptions[$opt] = $value;
-                }
+                $option = @constant('CURLOPT_' . strtoupper($option));
+            }
+
+            if (isset($this->curlOptConstantsHash[$option])) {
+                $validOptions[$option] = $value;
             } else {
-                $validOptions[(int) $option] = $value;
+                throw new \InvalidArgumentException('Couldn\'t find cURL constant '. $opt);
             }
         }
 
         return $validOptions;
+    }
+
+    private function setCurlOptConstants()
+    {
+        $curlConstants = get_defined_constants(true)['curl'];
+
+        foreach ($curlConstants as $name => $value) {
+            if (strpos($name, 'CURLOPT') === 0) {
+                $this->curlOptConstants[$name] = $value;
+            }
+        }
+
+        $this->curlOptConstantsHash = array_flip($this->curlOptConstants);
     }
 }
  

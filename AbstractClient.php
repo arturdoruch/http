@@ -41,7 +41,7 @@ abstract class AbstractClient
      * @param array $options cURL options
      * @return mixed
      */
-    protected function sendRequest(array $options)
+    protected function sendRequest(array $options, Request $request)
     {
         $this->resourceHandler->setCollection();
         
@@ -49,13 +49,15 @@ abstract class AbstractClient
         curl_setopt_array($handle, $options);
 
         curl_exec($handle);
-        $this->resourceHandler->handle($handle, $options[CURLOPT_URL], $this);
+
+        $request->setUrl($options[CURLOPT_URL]);
+        $this->resourceHandler->handle($handle, $request, $this);
 
         curl_close($handle);
     }
 
 
-    protected function sendMultiRequest(array $urls, array $options)
+    protected function sendMultiRequest(array $urls, array $options, Request $request)
     {
         $this->resourceHandler->setCollection(true);
         $this->index = 0;
@@ -86,9 +88,10 @@ abstract class AbstractClient
 
             if ($mhInfo = curl_multi_info_read($mh)) {
                 // This means one of the requests were finished
+                $request->setUrl($this->getTrackingUrl($mhInfo['handle']));
                 call_user_func_array(
                     array($this->resourceHandler, 'handle'),
-                    array($mhInfo, $this->getTrackingUrl($mhInfo['handle']), $this)
+                    array($mhInfo, $request, $this)
                 );
 
                 curl_multi_remove_handle($mh, $mhInfo['handle']);

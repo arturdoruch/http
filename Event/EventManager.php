@@ -25,7 +25,7 @@ class EventManager
      */
     public function enabledHttpErrorListener()
     {
-        $this->addListener('request.complete', array(new HttpErrorListener(), 'onComplete'));
+        $this->addListener('complete', array(new HttpErrorListener(), 'onComplete'));
     }
 
     /**
@@ -35,6 +35,12 @@ class EventManager
      */
     public function addListener($eventName, $listener, $priority = 0)
     {
+        if ($eventName !== 'complete' && $eventName !== 'end') {
+            throw new \InvalidArgumentException(
+                'Invalid "eventName" value. Allowed values are "complete" or "end".'
+            );
+        }
+
         $this->dispatcher->addListener($eventName, $listener, $priority);
     }
 

@@ -6,11 +6,17 @@
 namespace ArturDoruch\Http\Event;
 
 use ArturDoruch\Http\Client;
+use ArturDoruch\Http\Request;
 use ArturDoruch\Http\Response\Response;
 use Symfony\Component\EventDispatcher\Event;
 
 class CompleteEvent extends Event
 {
+    /**
+     * @var Request
+     */
+    private $request;
+
     /**
      * @var Response
      */
@@ -22,7 +28,23 @@ class CompleteEvent extends Event
     private $client;
 
     /**
-     * @return Response
+     * @return Request
+     */
+    public function getRequest()
+    {
+        return $this->request;
+    }
+
+    /**
+     * @param Request $request
+     */
+    public function setRequest(Request $request)
+    {
+        $this->request = $request;
+    }
+
+    /**
+     * @return Response|Response[]
      */
     public function getResponse()
     {
@@ -30,9 +52,9 @@ class CompleteEvent extends Event
     }
 
     /**
-     * @param Response $response
+     * @param Response|Response[] $response
      */
-    public function setResponse(Response $response)
+    public function setResponse($response)
     {
         $this->response = $response;
     }
@@ -48,9 +70,21 @@ class CompleteEvent extends Event
     /**
      * @param Client $client
      */
-    public function setClient($client)
+    public function setClient(Client $client)
     {
         $this->client = $client;
+    }
+
+    /**
+     * @param Request $request
+     * @param Response|Response[] $response
+     * @param Client $client
+     */
+    public function setData(Request $request, $response, Client $client)
+    {
+        $this->setRequest($request);
+        $this->setResponse($response);
+        $this->setClient($client);
     }
 
 }
