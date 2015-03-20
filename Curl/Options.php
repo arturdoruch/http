@@ -151,15 +151,17 @@ class Options
 
     private function setCurlOptConstants()
     {
-        $curlConstants = get_defined_constants(true)['curl'];
+        $constants = get_defined_constants(true);
 
-        foreach ($curlConstants as $name => $value) {
-            if (strpos($name, 'CURLOPT') === 0) {
-                $this->curlOptConstants[$name] = $value;
+        if (isset($constants['curl'])) {
+            foreach ($constants['curl'] as $name => $value) {
+                if (strpos($name, 'CURLOPT') === 0) {
+                    $this->curlOptConstants[$name] = $value;
+                }
             }
-        }
 
-        $this->curlOptConstantsHash = array_flip($this->curlOptConstants);
+            $this->curlOptConstantsHash = array_flip($this->curlOptConstants);
+        }
     }
 }
  
