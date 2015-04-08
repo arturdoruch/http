@@ -44,7 +44,8 @@ class RequestException extends \RuntimeException
 
         $message = $label . ' [url] ' . $response->getUrl()
             . ' [status code] ' . $response->getStatusCode()
-            . ' [reason phrase] ' . $response->getReasonPhrase();
+            . ' [reason phrase] ' . $response->getReasonPhrase()
+            . ' [error message] ' . $response->getErrorMsg();
 
         return new $className($message, $response, $previous);
     }

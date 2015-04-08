@@ -13,7 +13,7 @@ class ResponseUtils
      *
      * @var array
      */
-    public static $statusTexts = array(
+    private static $statusTexts = array(
         100 => 'Continue',
         101 => 'Switching Protocols',
         102 => 'Processing',
@@ -73,6 +73,16 @@ class ResponseUtils
         510 => 'Not Extended',
         511 => 'Network Authentication Required',
     );
+
+    /**
+     * @param int $statusCode
+     *
+     * @return null|string
+     */
+    public static function getReasonPhrase($statusCode)
+    {
+        return isset(static::$statusTexts[$statusCode]) ? static::$statusTexts[$statusCode] : null;
+    }
 
 }
  

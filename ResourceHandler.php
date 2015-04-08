@@ -114,13 +114,11 @@ class ResourceHandler
     {
         $info = curl_getinfo($handle);
         $content = curl_multi_getcontent($handle);
-
-        $statusCode = $info['http_code'];
-        $reasonPhrase = isset(ResponseUtils::$statusTexts[$statusCode]) ? ResponseUtils::$statusTexts[$statusCode] : '';
+        $reasonPhrase = ResponseUtils::getReasonPhrase($info['http_code']);
 
         $response = clone $this->response;
         $response
-            ->setStatusCode($statusCode)
+            ->setStatusCode($info['http_code'])
             ->setReasonPhrase($reasonPhrase)
             ->setBody($content)
             ->setUrl($url)
