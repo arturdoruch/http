@@ -39,6 +39,8 @@ abstract class AbstractClient
 
     /**
      * @param array $options cURL options
+     * @param Request $request
+     *
      * @return mixed
      */
     protected function sendRequest(array $options, Request $request)
