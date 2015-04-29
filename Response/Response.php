@@ -5,6 +5,7 @@
 
 namespace ArturDoruch\Http\Response;
 
+use ArturDoruch\Http\Util\HtmlUtils;
 
 class Response implements \JsonSerializable
 {
@@ -31,11 +32,9 @@ class Response implements \JsonSerializable
     private $body;
 
     /**
-     * Request url.
-     *
      * @var string
      */
-    private $url;
+    private $requestUrl;
 
     /**
      * @var string
@@ -243,9 +242,9 @@ class Response implements \JsonSerializable
      *
      * @return string
      */
-    public function getUrl()
+    public function getRequestUrl()
     {
-        return $this->url;
+        return $this->requestUrl;
     }
 
     /**
@@ -253,9 +252,9 @@ class Response implements \JsonSerializable
      *
      * @return $this
      */
-    public function setUrl($url)
+    public function setRequestUrl($url)
     {
-        $this->url = $url;
+        $this->requestUrl = $url;
 
         return $this;
     }
@@ -299,6 +298,126 @@ class Response implements \JsonSerializable
         $this->curlInfo = $curlInfo;
 
         return $this;
+    }
+
+    /**
+     * Converts Resource's collection into json.
+     *
+     * @param bool $prettyPrint
+     * @return string
+     */
+    public function toJson($prettyPrint = false)
+    {
+        return json_encode($this, ($prettyPrint === true ? JSON_PRETTY_PRINT : 0));
+    }
+
+    /**
+     * Converts Resource's collection into associative array.
+     *
+     * @return array
+     */
+    public function toArray()
+    {
+        return json_decode($this->toJson(), true);
+    }
+
+    /**
+     * Parses response body where content type is type of 'application/json' into associative array.
+     *
+     * @return $this
+     */
+    public function parseJsonBody()
+    {
+        if (preg_match('/^application\/.*json/i', $this->getContentType())) {
+            $this->setBody( json_decode($this->getBody(), true) );
+        }
+
+        return $this;
+    }
+
+    /**
+     * Cleans Response body where content type is type of 'text/html'.
+     *
+     * @param ResponseBodyInterface $responseBody Provides custom ways to clearing HTML.
+     * @param bool $removeHead  Removes <head> tag and leaves only <body> content.
+     * @param bool $removeNoise Removes comments and unwanted tags like:
+     *                          script, noscript, iframe, meta, input.
+     * @param bool $removeImages
+     * @param bool $removeWhiteSpaces
+     *
+     * @return $this;
+     */
+    public function cleanHtmlBody(ResponseBodyInterface $responseBody = null, $removeHead = true, $removeNoise = true, $removeImages = true, $removeWhiteSpaces = true)
+    {
+        if (strpos($this->getContentType(), 'text/html') === 0) {
+            $body = $this->getBody();
+
+            HtmlUtils::removeBlankLines($body);
+
+            if ($removeWhiteSpaces === true) {
+                HtmlUtils::removeWhiteSpace($body);
+                $body = str_replace("\n", '', $body);
+            }
+
+            if ($removeNoise === true) {
+                HtmlUtils::removeNoise($body, $removeImages);
+            }
+
+            if ($responseBody) {
+                $this->setBody($body);
+                $body = $responseBody->clean($this);
+            }
+
+            if ($removeHead === true && preg_match('/<\s*body[^>]*>(.*)<\/body>/si', $body, $matches)) {
+                $body = $matches[1];
+            }
+
+            $this->setBody($body);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Determines which property in Response object should be available
+     * in serialized to json object "toJson" or array "toArray".
+     * As default are exposed: headers, httpCode, body.
+     *
+     * @param array $properties
+     *
+     * @return $this;
+     */
+    public function expose(array $properties)
+    {
+        $this->setExpose($properties);
+
+        return $this;
+    }
+
+    /**
+     * Sets to all property in Response object as available
+     * in serialized to json object "toJson" or array "toArray".
+     *
+     * @return $this;
+     */
+    public function exposeAll()
+    {
+        $this->setExpose(array(), true);
+
+        return $this;
+    }
+
+    private function setExpose(array $properties, $all = false)
+    {
+        if ($all === true) {
+            $reflection = new \ReflectionClass($this);
+            $allProperties = $reflection->getProperties();
+            foreach ($allProperties as $property) {
+                $properties[] = $property->getName();
+            }
+        }
+
+        $this->jsonSerialize($properties);
     }
 
     /**

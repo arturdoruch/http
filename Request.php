@@ -13,9 +13,19 @@ class Request
     private $url;
 
     /**
+     * @var string
+     */
+    private $method = 'GET';
+
+    /**
+     * @var string
+     */
+    private $body;
+
+    /**
      * @var array
      */
-    private $cookies = array();
+    private $parameters = array();
 
     /**
      * @var array
@@ -25,12 +35,8 @@ class Request
     /**
      * @var array
      */
-    private $parameters = array();
+    private $cookies = array();
 
-    /**
-     * @var string
-     */
-    private $method = 'GET';
 
     public function __clone()
     {
@@ -84,6 +90,22 @@ class Request
         $this->cookies[] = trim($cookie);
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBody()
+    {
+        return $this->body;
+    }
+
+    /**
+     * @param string $body
+     */
+    public function setBody($body)
+    {
+        $this->body = $body;
     }
 
     /**
@@ -160,8 +182,6 @@ class Request
      */
     public function getHeader($name)
     {
-        //$name = ucfirst($name);
-
         return isset($this->headers[$name]) ? $this->headers[$name] : null;
     }
 

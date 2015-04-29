@@ -35,6 +35,11 @@ class ResourceHandler
     private $completeEvent;
 
     /**
+     * @var bool
+     */
+    private $multiRequest;
+
+    /**
      * @var array
      */
     private $unusedInfoKeys = array('url', 'content_type', 'http_code', 'redirect_count');
@@ -54,8 +59,8 @@ class ResourceHandler
      */
     public function setCollection($multi = false)
     {
-        //$this->response = new Response();
-        $this->responseCollection = new ResponseCollection($multi);
+        $this->multiRequest = $multi;
+        $this->responseCollection = new ResponseCollection();
     }
 
     /**
@@ -90,16 +95,15 @@ class ResourceHandler
             // Multi request
             $errorNo = $handle['result'];
             $handle = $handle['handle'];
-            $this->completeEvent->setMultiRequest(true);
         } else {
             // Single request
             $errorNo = curl_errno($handle);
-            $this->completeEvent->setMultiRequest(false);
         }
 
         $response = $this->parseResponse($handle, $url, $errorNo);
 
         // Dispatch event
+        $this->completeEvent->setMultiRequest($this->multiRequest);
         $this->completeEvent->setData($request, $response, $client);
         $this->eventManager->dispatch('complete', $this->completeEvent);
 
@@ -127,7 +131,7 @@ class ResourceHandler
         $response
             ->setStatusCode($info['http_code'])
             ->setReasonPhrase($reasonPhrase)
-            ->setUrl($url)
+            ->setRequestUrl($url)
             ->setEffectiveUrl($info['url'])
             ->setContentType($info['content_type'])
             ->setErrorMsg(curl_error($handle))

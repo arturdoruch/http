@@ -57,6 +57,11 @@ class Options
         $options = $this->validate($options) + $this->default;
         $options[CURLOPT_URL] = $request->getUrl();
 
+        if ($request->getBody() && $request->getMethod() == 'POST') {
+            $options[CURLOPT_POSTFIELDS] = $request->getBody();
+            $options[CURLOPT_POST] = true;
+        }
+
         if ($params = $request->getParameters()) {
             $method = $request->getMethod();
             if ($method == 'POST') {
@@ -64,10 +69,11 @@ class Options
 
                 $options[CURLOPT_POSTFIELDS] = $params;
                 $options[CURLOPT_POST] = count($params);
+
             } elseif ($method == 'GET') {
                 $options[CURLOPT_URL] .= '?' . http_build_query($params);
             } else {
-                //$options[CURLOPT_CUSTOMREQUEST] = "POST";
+                $options[CURLOPT_CUSTOMREQUEST] = $method;
                 //$options[CURLOPT_VERBOSE] = true;
             }
         }
@@ -155,7 +161,7 @@ class Options
 
         if (isset($constants['curl'])) {
             foreach ($constants['curl'] as $name => $value) {
-                if (strpos($name, 'CURLOPT') === 0) {
+                if (strpos($name, 'CURLOPT') === 0 || strpos($name, 'CURLINFO') === 0) {
                     $this->curlOptConstants[$name] = $value;
                 }
             }

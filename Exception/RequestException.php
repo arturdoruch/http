@@ -39,7 +39,7 @@ class RequestException extends \RuntimeException
             $className = __CLASS__;
         }
 
-        $message = static::getErrorLabel($response) . ' [url] ' . $response->getUrl()
+        $message = static::getErrorLabel($response) . ' [url] ' . $response->getRequestUrl()
             . ' [status code] ' . $response->getStatusCode()
             . ' [reason phrase] ' . $response->getReasonPhrase()
             . ' [error message] ' . $response->getErrorMsg();

@@ -10,20 +10,28 @@ class HtmlUtils
 {
     /**
      * @param string $html
-     * @param bool   $removeImage
+     * @param bool   $image         If true removes all img tags and input tags with type image from html document.
+     * @param bool   $inputAndMeta  If true removes all input and meta tags from html document.
+     * @param bool   $script        If true removes all script, nonscript na iframe tags from html document.
      *
      * @return string
      */
-    public static function removeNoise(&$html, $removeImage = true)
+    public static function removeNoise(&$html, $image = true, $inputAndMeta = true, $script = true)
     {
         $noise = array(
             '<!(?=.*--.*)[^>]{4,}>',
             '<!\[CDATA\[[^\]]+\]\]>',
-            '<\s*(script|noscript|iframe)[^>]*>[^>]*<\s*\/\s*\1\s*>',
-            '<\s*(meta|input)(?!.*type="image")[^>]+>'
         );
 
-        if ($removeImage === true) {
+        if ($script === true) {
+            $noise[] = '<\s*(script|noscript|iframe)[^>]*>[^>]*<\s*\/\s*\1\s*>';
+        }
+
+        if ($inputAndMeta === true) {
+            $noise[] = '<\s*(meta|input)(?!.*type="image")[^>]+>';
+        }
+
+        if ($image === true) {
             $noise[] = '<\s*img[^>]+>';
             $noise[] = '<\s*input[^>]+type="image"[^>]+>';
         }
@@ -33,7 +41,10 @@ class HtmlUtils
         }
     }
 
+
     /**
+     * Removes white spaces from string code.
+     *
      * @param string $html
      *
      * @return string
@@ -44,33 +55,13 @@ class HtmlUtils
     }
 
     /**
-     * @param \DOMNode $element
+     * @param string $html
      *
-     * @return string
+     * @return mixed
      */
-    public static function getInnerHTML(\DOMNode $element)
-    { 
-        $innerHTML = ''; 
-        $children = $element->childNodes;
-    
-        foreach ($children as $child) { 
-            $innerHTML .= $element->ownerDocument->saveHTML($child);
-        }
-    
-        return $innerHTML; 
-    }
-
-    /**
-     * @param \DOMDocument $dom
-     * @param string       $className
-     *
-     * @return \DOMNodeList
-     */
-    public static function getElementsByClassName(\DOMDocument $dom, $className)
+    public static function removeBlankLines(&$html)
     {
-        $xpath = new \DOMXPath($dom);
-
-        return $xpath->query("//*[contains(concat(' ', normalize-space(@class), ' '), ' ".$className." ')]");
+        $html = preg_replace('/(?:[\t ]*(?:\r?\n|\r))+/i', "\n", $html);
     }
 
 }
