@@ -31,7 +31,7 @@ class CookieFile
 
         if (!is_writable($filename)) {
             throw new \RuntimeException(sprintf(
-                    'The cookie filename "%s" is not writable. Permissions denied.', $filename
+                    'The cookie file "%s" is not writable. Permissions denied.', $filename
                 ));
         }
 

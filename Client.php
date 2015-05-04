@@ -27,12 +27,17 @@ class Client extends AbstractClient
     private $request;
 
     /**
+     * @var Response
+     */
+    private $lastResponse;
+
+    /**
      * @param array $curlOptions
      * An array with key => value pairs. Key is cURL option and can be in three different formats:
      * as full constant name, constant integer value or constant name without part "CURLOPT_".
      * For example to set CURLOPT_TIMEOUT to 15 seconds,
      * pass [CURLOPT_TIMEOUT => 15] or [13 => 15] or ['timeout' => 15].
-     * 
+     *
      * @param bool $enabledExceptions
      * @param CookieFile $cookieFile
      */
@@ -94,6 +99,14 @@ class Client extends AbstractClient
     public function setDefaultCurlOptions(array $options)
     {
         $this->options->setDefault($options);
+    }
+
+    /**
+     * @return Response
+     */
+    public function getLastResponse()
+    {
+        return $this->lastResponse;
     }
 
     /**
@@ -198,7 +211,7 @@ class Client extends AbstractClient
 
         $responses = $this->resourceHandler->getResponseCollection()->all();
 
-        return $responses[0];
+        return $this->lastResponse = $responses[0];
     }
 
     /**
@@ -240,4 +253,3 @@ class Client extends AbstractClient
     }
 
 }
- 
