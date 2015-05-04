@@ -5,6 +5,7 @@
 
 namespace ArturDoruch\Http\Curl;
 
+use ArturDoruch\Http\Cookie\CookieFile;
 use ArturDoruch\Http\Request;
 
 class Options
@@ -29,33 +30,27 @@ class Options
     private $curlOptConstantsHash = array();
 
     /**
-     * @var string
+     * @var CookieFile
      */
     private $cookieFile;
 
-    public function __construct($cookieFile = null)
+    public function __construct(CookieFile $cookieFile)
     {
-        $this->cookieFile = $cookieFile ?: __DIR__ . '/cookies.txt';
+        $this->cookieFile = $cookieFile;
         $this->setCurlOptConstants();
     }
 
     /**
-     * @param string $cookieFile
-     */
-    public function setCookieFile($cookieFile)
-    {
-        $this->cookieFile = $cookieFile;
-    }
-
-    /**
      * @param Request $request
-     * @param array            $options
+     * @param array   $options
      * @return array
      */
     public function parse(Request $request, array $options = array())
     {
         $options = $this->validate($options) + $this->default;
         $options[CURLOPT_URL] = $request->getUrl();
+        $options[CURLOPT_COOKIEJAR] = $this->cookieFile->getFilename();
+        $options[CURLOPT_COOKIEFILE] = $this->cookieFile->getFilename();
 
         if ($request->getBody() && $request->getMethod() == 'POST') {
             $options[CURLOPT_POSTFIELDS] = $request->getBody();
@@ -101,20 +96,16 @@ class Options
     public function setDefault(array $options)
     {
         $defaultOptions = array(
-            CURLOPT_USERAGENT =>
-                isset($_SERVER['HTTP_USER_AGENT'])
+            CURLOPT_USERAGENT => isset($_SERVER['HTTP_USER_AGENT'])
                 ? $_SERVER['HTTP_USER_AGENT']
                 : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 Firefox/35.0',
-                //'Guzzle/5.2.0 curl/7.35.0 PHP/5.5.22-1+deb.sury.org~trusty+1',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_HEADER => true,
             CURLOPT_ENCODING => true,
-            CURLOPT_COOKIEJAR => $this->cookieFile,
-            CURLOPT_COOKIEFILE => $this->cookieFile,
-            CURLOPT_TIMEOUT => 15000,
-            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4
+            CURLOPT_TIMEOUT => 1500,
+            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
         );
 
         $this->default = $this->validate($options) + $defaultOptions;

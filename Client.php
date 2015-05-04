@@ -5,6 +5,7 @@
 
 namespace ArturDoruch\Http;
 
+use ArturDoruch\Http\Cookie\CookieFile;
 use ArturDoruch\Http\Curl\Options;
 use ArturDoruch\Http\Response\Response;
 
@@ -14,6 +15,11 @@ class Client extends AbstractClient
      * @var Options
      */
     private $options;
+
+    /**
+     * @var CookieFile
+     */
+    private $cookieFile;
 
     /**
      * @var Request
@@ -26,12 +32,14 @@ class Client extends AbstractClient
      * as full constant name, constant integer value or constant name without part "CURLOPT_".
      * For example to set CURLOPT_TIMEOUT to 15 seconds,
      * pass [CURLOPT_TIMEOUT => 15] or [13 => 15] or ['timeout' => 15].
-     *
-     * @param bool   $enabledExceptions
+     * 
+     * @param bool $enabledExceptions
+     * @param CookieFile $cookieFile
      */
-    public function __construct(array $curlOptions = array(), $enabledExceptions = true)
+    public function __construct(array $curlOptions = array(), $enabledExceptions = true, CookieFile $cookieFile = null)
     {
-        $this->options = new Options();
+        $this->cookieFile = $cookieFile ?: new CookieFile();
+        $this->options = new Options($this->cookieFile);
         $this->options->setDefault($curlOptions);
         $this->request = new Request();
 
@@ -51,11 +59,21 @@ class Client extends AbstractClient
     }
 
     /**
-     * @param string $cookieFile  Path to file to storage cookie information to sent or retrieve from server.
+     * @param string $filename  Path to file where session cookies will be stored.
      */
-    public function setCookieFile($cookieFile)
+    public function setCookieFile($filename)
     {
-        $this->options->setCookieFile($cookieFile);
+        $this->cookieFile->setFile($filename);
+    }
+
+    /**
+     * Gets path to currently used cookie file.
+     *
+     * @return string
+     */
+    public function getCookieFilename()
+    {
+        return $this->cookieFile->getFilename();
     }
 
     /**
