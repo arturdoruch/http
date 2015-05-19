@@ -175,8 +175,8 @@ class ResourceHandler
         $headerParts = explode("\n", $headers);
 
         foreach ($headerParts as $part) {
-            @list($name, $value) = explode(': ', $part);
-            $data[$name] = trim($value);
+            $parts = explode(': ', $part);
+            $data[$parts[0]] = isset($parts[1]) ? trim($parts[1]) : null;
         }
 
         return $data;
