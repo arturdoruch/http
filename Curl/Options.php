@@ -104,7 +104,8 @@ class Options
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_HEADER => true,
             CURLOPT_ENCODING => true,
-            CURLOPT_TIMEOUT => 1500,
+            CURLOPT_TIMEOUT => 200,
+            CURLOPT_CONNECTTIMEOUT => 180,
             CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
         );
 
