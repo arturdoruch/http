@@ -63,7 +63,7 @@ abstract class AbstractClient
     {
         $this->resourceHandler->setCollection(true);
         $this->index = 0;
-        $this->multiRequestConfig['urls'] = $urls;
+        $this->multiRequestConfig['urls'] = array_values($urls);
         $this->multiRequestConfig['options'] = $options;
 
         $mh = curl_multi_init();
@@ -156,7 +156,7 @@ abstract class AbstractClient
 
     private function getResourceId($handle)
     {
-        return preg_replace('/[^\d]/', '', $handle);
+        return (int) filter_var($handle, FILTER_SANITIZE_NUMBER_INT);
     }
 }
  

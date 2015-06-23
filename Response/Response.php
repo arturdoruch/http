@@ -180,6 +180,21 @@ class Response implements \JsonSerializable
     }
 
     /**
+     * @param string $name
+     * @param string $value
+     *
+     * @return $this
+     */
+    public function addHeader($name, $value)
+    {
+        if (is_string($name)) {
+            $this->headers[$name] = $value;
+        }
+
+        return $this;
+    }
+
+    /**
      * @return int
      */
     public function getStatusCode()

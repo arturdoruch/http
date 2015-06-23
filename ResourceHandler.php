@@ -107,7 +107,7 @@ class ResourceHandler
         $this->completeEvent->setData($request, $response, $client);
         $this->eventManager->dispatch('complete', $this->completeEvent);
 
-        $resourceId = preg_replace('/[^\d]/i', '', $handle);
+        $resourceId = (int) filter_var($handle, FILTER_SANITIZE_NUMBER_INT);
         $this->responseCollection->add($response, $resourceId);
     }
 
