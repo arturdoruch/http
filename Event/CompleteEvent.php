@@ -6,8 +6,8 @@
 namespace ArturDoruch\Http\Event;
 
 use ArturDoruch\Http\Client;
+use ArturDoruch\Http\Message\Response;
 use ArturDoruch\Http\Request;
-use ArturDoruch\Http\Response\Response;
 use Symfony\Component\EventDispatcher\Event;
 
 class CompleteEvent extends Event

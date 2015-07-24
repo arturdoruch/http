@@ -5,16 +5,13 @@
 
 namespace ArturDoruch\Http\Response;
 
+use ArturDoruch\Http\Message\MessageBodyCleanerInterface;
+
 /**
- * Provides a custom way to clearing response body with HTML content type.
+ * @deprecated Will be removed in version 4. Use instead ArturDoruch\Http\Message\MessageBodyCleanerInterface.
  */
-interface ResponseBodyInterface
+interface ResponseBodyInterface extends MessageBodyCleanerInterface
 {
-    /**
-     * @param Response $response
-     *
-     * @return string|null
-     */
-    public function clean(Response $response);
+
 }
  

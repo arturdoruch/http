@@ -3,16 +3,16 @@
  * @author Artur Doruch <arturdoruch@interia.pl>
  */
 
-namespace ArturDoruch\Http\Response;
+namespace ArturDoruch\Http\Message;
 
 use ArturDoruch\Http\Util\HtmlUtils;
 
-class Response implements \JsonSerializable
+class Response extends MessageHeader implements \JsonSerializable
 {
     /**
-     * @var array
+     * @var string
      */
-    private $headers = array();
+    private $body;
 
     /**
      * @var int
@@ -25,11 +25,6 @@ class Response implements \JsonSerializable
      * @var string
      */
     private $reasonPhrase;
-
-    /**
-     * @var string
-     */
-    private $body;
 
     /**
      * @var string
@@ -68,7 +63,6 @@ class Response implements \JsonSerializable
 
     public function __clone()
     {
-        
     }
 
     /**
@@ -81,6 +75,7 @@ class Response implements \JsonSerializable
 
     /**
      * @param string $body
+     *
      * @return $this
      */
     public function setBody($body)
@@ -143,53 +138,6 @@ class Response implements \JsonSerializable
     public function setErrorNumber($errorNumber)
     {
         $this->errorNumber = $errorNumber;
-
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getHeaders()
-    {
-        return $this->headers;
-    }
-
-    /**
-     * Gets single header fields by specified name.
-     *
-     * @param string $name
-     *
-     * @return string|null
-     */
-    public function getHeader($name)
-    {
-        return isset($this->headers[$name]) ? $this->headers[$name] : null;
-    }
-
-    /**
-     * @param array $headers
-     *
-     * @return $this
-     */
-    public function setHeaders(array $headers)
-    {
-        $this->headers = $headers;
-
-        return $this;
-    }
-
-    /**
-     * @param string $name
-     * @param string $value
-     *
-     * @return $this
-     */
-    public function addHeader($name, $value)
-    {
-        if (is_string($name)) {
-            $this->headers[$name] = $value;
-        }
 
         return $this;
     }
@@ -316,9 +264,10 @@ class Response implements \JsonSerializable
     }
 
     /**
-     * Converts Resource's collection into json.
+     * Converts Response into json.
      *
      * @param bool $prettyPrint
+     *
      * @return string
      */
     public function toJson($prettyPrint = false)
@@ -327,7 +276,7 @@ class Response implements \JsonSerializable
     }
 
     /**
-     * Converts Resource's collection into associative array.
+     * Converts Response into associative array.
      *
      * @return array
      */
@@ -353,7 +302,7 @@ class Response implements \JsonSerializable
     /**
      * Cleans Response body where content type is type of 'text/html'.
      *
-     * @param ResponseBodyInterface $responseBody Provides custom ways to clearing HTML.
+     * @param MessageBodyCleanerInterface $cleaner Provides custom ways to clearing HTML.
      * @param bool $removeHead  Removes <head> tag and leaves only <body> content.
      * @param bool $removeNoise Removes comments and unwanted tags like:
      *                          script, noscript, iframe, meta, input.
@@ -362,7 +311,7 @@ class Response implements \JsonSerializable
      *
      * @return $this;
      */
-    public function cleanHtmlBody(ResponseBodyInterface $responseBody = null, $removeHead = true, $removeNoise = true, $removeImages = true, $removeWhiteSpaces = true)
+    public function cleanHtmlBody(MessageBodyCleanerInterface $cleaner = null, $removeHead = true, $removeNoise = true, $removeImages = true, $removeWhiteSpaces = true)
     {
         if (strpos($this->getContentType(), 'text/html') === 0) {
             $body = $this->getBody();
@@ -378,9 +327,9 @@ class Response implements \JsonSerializable
                 HtmlUtils::removeNoise($body, $removeImages);
             }
 
-            if ($responseBody) {
+            if ($cleaner) {
                 $this->setBody($body);
-                $body = $responseBody->clean($this);
+                $body = $cleaner->cleanHtml($this);
             }
 
             if ($removeHead === true && preg_match('/<\s*body[^>]*>(.*)<\/body>/si', $body, $matches)) {

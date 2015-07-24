@@ -2,7 +2,7 @@
 
 namespace ArturDoruch\Http\Exception;
 
-use ArturDoruch\Http\Response\Response;
+use ArturDoruch\Http\Message\Response;
 
 /**
  * HTTP Request exception

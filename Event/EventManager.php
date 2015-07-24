@@ -21,7 +21,7 @@ class EventManager
     }
 
     /**
-     * Enables throwing HTTP response status code 4xx and 5xx exceptions.
+     * Enables throwing http request exceptions.
      */
     public function enabledHttpErrorListener()
     {
@@ -35,10 +35,10 @@ class EventManager
      */
     public function addListener($eventName, $listener, $priority = 0)
     {
-        if ($eventName !== 'complete' && $eventName !== 'end') {
-            throw new \InvalidArgumentException(
-                'Invalid "eventName" value. Allowed values are "complete" or "end".'
-            );
+        if (!in_array($eventName, array('complete', 'end'))) {
+            throw new \InvalidArgumentException(sprintf(
+                    'Invalid "%s" event name. Allowed names are: "complete", "end".', $eventName
+                ));
         }
 
         $this->dispatcher->addListener($eventName, $listener, $priority);

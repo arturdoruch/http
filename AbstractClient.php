@@ -5,7 +5,7 @@
 
 namespace ArturDoruch\Http;
 
-
+use ArturDoruch\Http\Curl\ResourceHandler;
 use ArturDoruch\Http\Event\EventManager;
 
 abstract class AbstractClient
@@ -25,10 +25,19 @@ abstract class AbstractClient
      */
     protected $connections = 8;
 
+    /**
+     * @var int Urls array index.
+     */
     private $index = 0;
 
+    /**
+     * @var array
+     */
     private $multiRequestConfig = array();
 
+    /**
+     * @var array
+     */
     private $trackingUrls = array();
 
     public function __construct()
@@ -143,20 +152,16 @@ abstract class AbstractClient
 
     private function setTrackingUrl($url, $handle)
     {
-        $resourceId = $this->getResourceId($handle);
+        $resourceId = $this->resourceHandler->getResourceId($handle);
         $this->trackingUrls[$resourceId] = $url;
     }
 
     private function getTrackingUrl($handle)
     {
-        $resourceId = $this->getResourceId($handle);
+        $resourceId = $this->resourceHandler->getResourceId($handle);
 
         return isset($this->trackingUrls[$resourceId]) ? $this->trackingUrls[$resourceId] : null;
     }
 
-    private function getResourceId($handle)
-    {
-        return (int) filter_var($handle, FILTER_SANITIZE_NUMBER_INT);
-    }
 }
  

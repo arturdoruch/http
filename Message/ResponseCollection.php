@@ -3,7 +3,7 @@
  * @author Artur Doruch <arturdoruch@interia.pl>
  */
 
-namespace ArturDoruch\Http\Response;
+namespace ArturDoruch\Http\Message;
 
 class ResponseCollection
 {

@@ -52,24 +52,24 @@ class Options
         $options[CURLOPT_COOKIEJAR] = $this->cookieFile->getFilename();
         $options[CURLOPT_COOKIEFILE] = $this->cookieFile->getFilename();
 
-        if ($request->getBody() && $request->getMethod() == 'POST') {
-            $options[CURLOPT_POSTFIELDS] = $request->getBody();
-            $options[CURLOPT_POST] = true;
+        $method = strtoupper($request->getMethod());
+        $params = $request->getParameters();
+
+        if ($method !== 'GET') {
+            $options[CURLOPT_CUSTOMREQUEST] = $method;
         }
 
-        if ($params = $request->getParameters()) {
-            $method = $request->getMethod();
-            if ($method == 'POST') {
-                $params = http_build_query($params);
-
-                $options[CURLOPT_POSTFIELDS] = $params;
-                $options[CURLOPT_POST] = count($params);
-
-            } elseif ($method == 'GET') {
-                $options[CURLOPT_URL] .= '?' . http_build_query($params);
-            } else {
-                $options[CURLOPT_CUSTOMREQUEST] = $method;
-                //$options[CURLOPT_VERBOSE] = true;
+        if (($method === 'GET' || $method === 'HEAD') && $params) {
+            $options[CURLOPT_URL] .= '?' . http_build_query($params);
+        } else {
+            if ($request->getBody()) {
+                $options[CURLOPT_POSTFIELDS] = $request->getBody();
+                $options[CURLOPT_POST] = true;
+            } elseif ($params = $request->getParameters()) {
+                if (!in_array($method, array('GET', 'HEAD'))) {
+                    $options[CURLOPT_POSTFIELDS] = $params = http_build_query($params);
+                    $options[CURLOPT_POST] = count($params);
+                }
             }
         }
 
@@ -82,7 +82,12 @@ class Options
         }
 
         if ($headers = $request->getHeaders()) {
-            $options[CURLOPT_HTTPHEADER] = $headers;
+            $headerLines = array();
+            foreach ($headers as $header => $value) {
+                $headerLines[] = $header . ': ' . $value;
+            }
+
+            $options[CURLOPT_HTTPHEADER] = $headerLines;
         }
 
         return $options;
@@ -161,5 +166,6 @@ class Options
             $this->curlOptConstantsHash = array_flip($this->curlOptConstants);
         }
     }
+
 }
  

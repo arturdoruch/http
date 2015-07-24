@@ -9,10 +9,12 @@ namespace ArturDoruch\Http\Util;
 class HtmlUtils
 {
     /**
+     * Removes unwanted tags from html code.
+     *
      * @param string $html
-     * @param bool   $image         If true removes all img tags and input tags with type image from html document.
-     * @param bool   $inputAndMeta  If true removes all input and meta tags from html document.
-     * @param bool   $script        If true removes all script, nonscript na iframe tags from html document.
+     * @param bool   $image         Removes tags: img, input[type="image"].
+     * @param bool   $inputAndMeta  Removes tags: input, meta.
+     * @param bool   $script        Removes tags: script, nonscript, iframe.
      *
      * @return string
      */
@@ -40,7 +42,6 @@ class HtmlUtils
             $html = preg_replace("@{$pattern}@is", '', $html);
         }
     }
-
 
     /**
      * Removes white spaces from string code.

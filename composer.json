@@ -1,5 +1,6 @@
 {
     "name": "arturdoruch/http",
+    "type": "library",
     "description": "HTTP client for making http requests in enjoyable way.",
     "license": "MIT",
     "keywords": ["http request", "http client", "curl", "multi requests"],
@@ -14,6 +15,8 @@
         "symfony/event-dispatcher": "~2.6"
     },
     "autoload": {
-        "psr-4" : { "ArturDoruch\\Http\\" : "" }
+        "psr-4" : {
+            "ArturDoruch\\Http\\" : ""
+        }
     }
 }

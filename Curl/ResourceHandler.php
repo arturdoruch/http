@@ -3,12 +3,13 @@
  * @author Artur Doruch <arturdoruch@interia.pl>
  */
 
-namespace ArturDoruch\Http;
+namespace ArturDoruch\Http\Curl;
 
 use ArturDoruch\Http\Event\CompleteEvent;
 use ArturDoruch\Http\Event\EventManager;
-use ArturDoruch\Http\Response\Response;
-use ArturDoruch\Http\Response\ResponseCollection;
+use ArturDoruch\Http\Message\Response;
+use ArturDoruch\Http\Message\ResponseCollection;
+use ArturDoruch\Http\Request;
 use ArturDoruch\Http\Util\ResponseUtils;
 
 
@@ -72,11 +73,9 @@ class ResourceHandler
     }
 
     /**
-     * @param resource $handle  cURL response resource.
+     * @param resource $handle cURL response resource.
      * @param Request  $request
      * @param Client
-     *
-     * @return mixed
      */
     public function handle($handle, Request $request, $client)
     {
@@ -107,8 +106,16 @@ class ResourceHandler
         $this->completeEvent->setData($request, $response, $client);
         $this->eventManager->dispatch('complete', $this->completeEvent);
 
-        $resourceId = (int) filter_var($handle, FILTER_SANITIZE_NUMBER_INT);
-        $this->responseCollection->add($response, $resourceId);
+        $this->responseCollection->add($response, $this->getResourceId($handle));
+    }
+
+    /**
+     * @param resource $handle cURL response resource.
+     * @return int
+     */
+    public function getResourceId($handle)
+    {
+        return (int) filter_var($handle, FILTER_SANITIZE_NUMBER_INT);
     }
 
     /**
@@ -165,17 +172,17 @@ class ResourceHandler
     }
 
     /**
-     * @param string $headers
+     * @param string $headerLines
      *
      * @return array
      */
-    private function parseHeaders($headers)
+    private function parseHeaders($headerLines)
     {
         $data = array();
-        $headerParts = explode("\n", $headers);
+        $headers = explode("\n", $headerLines);
 
-        foreach ($headerParts as $part) {
-            $parts = explode(': ', $part);
+        foreach ($headers as $header) {
+            $parts = explode(': ', $header);
             $data[$parts[0]] = isset($parts[1]) ? trim($parts[1]) : null;
         }
 

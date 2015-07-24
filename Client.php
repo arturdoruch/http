@@ -7,7 +7,7 @@ namespace ArturDoruch\Http;
 
 use ArturDoruch\Http\Cookie\CookieFile;
 use ArturDoruch\Http\Curl\Options;
-use ArturDoruch\Http\Response\Response;
+use ArturDoruch\Http\Message\Response;
 
 class Client extends AbstractClient
 {
@@ -33,15 +33,21 @@ class Client extends AbstractClient
 
     /**
      * @param array $curlOptions
-     * An array with key => value pairs. Key is cURL option and can be in three different formats:
-     * as full constant name, constant integer value or constant name without part "CURLOPT_".
+     * cURL options as array with key, value pairs, when key is cURL option.
+     * Key can be in three different formats:
+     *  - full constant name or,
+     *  - constant integer value or,
+     *  - constant name without part "CURLOPT_".
      * For example to set CURLOPT_TIMEOUT to 15 seconds,
      * pass [CURLOPT_TIMEOUT => 15] or [13 => 15] or ['timeout' => 15].
      *
-     * @param bool $enabledExceptions
+     * @param bool $throwExceptions
+     * If true and http request return 0 or server or client error status code, then RequestException will be thrown.
      * @param CookieFile $cookieFile
+     * Set if you want store website session cookies into custom location. As default cookies are storing into
+     * "Cookie/cookies.txt" file.
      */
-    public function __construct(array $curlOptions = array(), $enabledExceptions = true, CookieFile $cookieFile = null)
+    public function __construct(array $curlOptions = array(), $throwExceptions = true, CookieFile $cookieFile = null)
     {
         $this->cookieFile = $cookieFile ?: new CookieFile();
         $this->options = new Options($this->cookieFile);
@@ -50,7 +56,7 @@ class Client extends AbstractClient
 
         parent::__construct();
 
-        if ($enabledExceptions === true) {
+        if ($throwExceptions === true) {
             $this->eventManager->enabledHttpErrorListener();
         }
     }
@@ -66,7 +72,7 @@ class Client extends AbstractClient
     /**
      * @param string $filename  Path to file where session cookies will be stored.
      */
-    public function setCookieFile($filename)
+    public function setCookieFilename($filename)
     {
         $this->cookieFile->setFile($filename);
     }
@@ -112,7 +118,7 @@ class Client extends AbstractClient
     /**
      * Adds event listener, that will be called after HTTP request is complete.
      *
-     * @param string   $eventName [complete, end]
+     * @param string   $eventName [complete]
      * @param callable $listener
      * @param int      $priority
      */
@@ -122,15 +128,12 @@ class Client extends AbstractClient
     }
 
     /**
-     * Makes GET request
+     * Makes GET request.
      *
      * @param string $url
-     * @param array  $parameters Request parameters
-     * @param array  $options    Others request parameters
-     *  - body
-     *  - cookie
-     *  - headers
-     * @param array  $curlOptions
+     * @param array $parameters Url query parameters
+     * @param array $options
+     * @param array $curlOptions
      *
      * @return Response
      */
@@ -140,15 +143,12 @@ class Client extends AbstractClient
     }
 
     /**
-     * Makes POST request
+     * Makes POST request.
      *
      * @param string $url
-     * @param array  $parameters Request parameters
-     * @param array  $options    Others request parameters
-     *  - body
-     *  - cookie
-     *  - headers
-     * @param array  $curlOptions
+     * @param array $parameters
+     * @param array $options
+     * @param array $curlOptions
      *
      * @return Response
      */
@@ -158,13 +158,62 @@ class Client extends AbstractClient
     }
 
     /**
+     * Makes PATCH request.
+     *
+     * @param string $url
+     * @param array $parameters
+     * @param array $options
+     * @param array $curlOptions
+     *
+     * @return Response
+     */
+    public function patch($url, array $parameters = array(), array $options = array(), array $curlOptions = array())
+    {
+        return $this->request($this->createRequest($url, 'PATCH', $parameters, $options), $curlOptions);
+    }
+
+    /**
+     * Makes PUT request.
+     *
+     * @param string $url
+     * @param array $parameters Form parameters
+     * @param array $options
+     * @param array $curlOptions
+     *
+     * @return Response
+     */
+    public function put($url, array $parameters = array(), array $options = array(), array $curlOptions = array())
+    {
+        return $this->request($this->createRequest($url, 'PUT', $parameters, $options), $curlOptions);
+    }
+
+    /**
+     * Makes DELETE request.
+     *
+     * @param string $url
+     * @param array $parameters Form parameters
+     * @param array $options
+     * @param array $curlOptions
+     *
+     * @return Response
+     */
+    public function delete($url, array $parameters = array(), array $options = array(), array $curlOptions = array())
+    {
+        return $this->request($this->createRequest($url, 'DELETE', $parameters, $options), $curlOptions);
+    }
+
+    /**
+     * Creates Request object with given parameters.
+     *
      * @param string $url
      * @param string $method
-     * @param array  $parameters Request parameters
-     * @param array  $options    Others request parameters
-     *  - body
+     * @param array $parameters Request parameters
+     * @param array $options
      *  - cookie
      *  - headers
+     *  - body
+     *  - json
+     *  - files
      *
      * @return Request
      */
@@ -172,12 +221,9 @@ class Client extends AbstractClient
     {
         $request = clone $this->request;
         $request
+            ->setUrl($url)
             ->setMethod($method)
             ->setParameters($parameters);
-
-        if (!empty($url)) {
-            $request->setUrl($url);
-        }
 
         if (!empty($options)) {
             if (isset($options['cookie'])) {
@@ -190,6 +236,8 @@ class Client extends AbstractClient
 
             if (isset($options['body'])) {
                 $request->setBody($options['body']);
+            } elseif (isset($options['json']) || isset($options['files'])) {
+                $request->setBody($options);
             }
         }
 

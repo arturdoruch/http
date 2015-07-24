@@ -5,13 +5,21 @@
 
 namespace ArturDoruch\Http\Cookie;
 
+/**
+ * Class for managing session cookie file.
+ */
 class CookieFile
 {
     /**
+     * Cookie file name
+     *
      * @var string
      */
     private $filename;
 
+    /**
+     * @param null|string $filename Cookie file name.
+     */
     public function __construct($filename = null)
     {
         $filename = $filename ?: __DIR__ . '/cookies.txt';
@@ -19,7 +27,7 @@ class CookieFile
     }
 
     /**
-     * @param string $filename
+     * @param string $filename Cookie file name.
      *
      * @throws \Exception
      */

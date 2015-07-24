@@ -5,7 +5,10 @@
 
 namespace ArturDoruch\Http;
 
-class Request
+use ArturDoruch\Http\Message\MessageHeader;
+use ArturDoruch\Http\Message\RequestBody;
+
+class Request extends MessageHeader
 {
     /**
      * @var string
@@ -18,29 +21,35 @@ class Request
     private $method = 'GET';
 
     /**
-     * @var string
+     * @var array Form or url query parameters
+     */
+    private $parameters = array();
+
+    /**
+     * @var string|array
      */
     private $body;
 
     /**
      * @var array
      */
-    private $parameters = array();
-
-    /**
-     * @var array
-     */
-    private $headers = array();
-
-    /**
-     * @var array
-     */
     private $cookies = array();
 
+    /**
+     * @var RequestBody
+     */
+    private $requestBody;
+
+    public function __construct($method = 'GET', $url = null)
+    {
+        $this->setMethod($method);
+        $this->setUrl($url);
+        $this->requestBody = new RequestBody();
+    }
 
     public function __clone()
     {
-
+        $this->requestBody = clone $this->requestBody;
     }
 
     /**
@@ -90,22 +99,6 @@ class Request
         $this->cookies[] = trim($cookie);
 
         return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getBody()
-    {
-        return $this->body;
-    }
-
-    /**
-     * @param string $body
-     */
-    public function setBody($body)
-    {
-        $this->body = $body;
     }
 
     /**
@@ -161,51 +154,52 @@ class Request
      */
     public function setMethod($method)
     {
-        $this->method = $method;
+        $this->method = strtoupper($method);
 
         return $this;
     }
 
     /**
-     * @return array
+     * @return string
      */
-    public function getHeaders()
+    public function getBody()
     {
-        return $this->headers;
+        return $this->body;
     }
 
     /**
-     * Gets single header fields by specified name.
+     * @param string|array $body Content to send with request.
+     * For sending raw data pass string.
+     * For sending json pass array with data under key "json".
+     * Example:
+     *      setBody(['json' => [
+     *          'data' => 'value'
+     *      ]]);
      *
-     * @param string $name
-     * @return mixed
-     */
-    public function getHeader($name)
-    {
-        return isset($this->headers[$name]) ? $this->headers[$name] : null;
-    }
-
-    /**
-     * @param array $headers
+     * For sending files pass array with PostFile instances under key "files".
+     * Example:
+     *      setBody(['files' => [
+     *          new PostFile($name, $file, $filename = null)
+     *      ]]);
+     *
      * @return $this
      */
-    public function setHeaders(array $headers)
+    public function setBody($body)
     {
-        $this->headers = $headers;
+        $this->body = $this->requestBody->parseBody($body);
+        $this->setContentType($this->requestBody->getContentType());
 
         return $this;
     }
 
     /**
-     * @param string $name
-     * @param mixed $value
-     * @return $this
+     * @param string $contentType
      */
-    public function addHeader($name, $value)
+    private function setContentType($contentType)
     {
-        $this->headers[$name] = $value;
-
-        return $this;
+        if (!$this->getHeader('Content-Type') && $contentType) {
+            $this->addHeader('Content-Type', $contentType);
+        }
     }
 
 }
