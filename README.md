@@ -8,119 +8,70 @@ Via composer. Add this lines into composer.json file.
 {
     "require": {
         ...
-        "arturdoruch/http": "~2.0"
+        "arturdoruch/http": "~3.0"
     }
 }
 ```
 
 ## Usage
 
-### Get http client and set request options.
+### Basic usage
+
+Making http request is pretty straightforward.
+
 ```php
-// Set custom cURL options to all requests.
-$options = array(
-    'timeout' => 10000,
-    'followlocation' => false
-);
+use ArturDoruch\Http\Client;
 
-$client = new \ArturDoruch\Http\Client($options);
+$client = new Client();
+$response = $client->get('http://httpbin.org/get');
 
-// Set number of maximum multi connections. Default is 8.
-$client->setConnections(4);
-```
+$statusCode = $response->getStatusCode();
+$body = $response->getBody();
 
-### Make request
-Make single request.
-```php
-$url = 'http://php.net';
-$collection = $client->request($url);
-```
-Make multi requests.
-```php
-$urls = array(
-    'http://twitter.com',
-    'http://php.net'
-);
-$collection = $client->multiRequest($urls);
-```
-
-For send request with HTTP method different then GET or send some parameters 
-use ```ArturDoruch\Http\RequestParameter``` class as second argument in 
-```ArturDoruch\Http\Client::request``` or ```ArturDoruch\Http\Client::multiRequest``` method.
-You can set parameters like: parameters, headers, cookies, method and url.
-Parameter url is used only with single request.
-```php
-$requestParams = new \ArturDoruch\Http\RequestParameter();
-$requestParams->setMethod('POST')
-    ->addParameter('name', 'value');
-
-$collection = $client->multiRequest($urls, $requestParams);
-```
-
-### Parse and clean response body
-
-If response content-type is type of 'text/html' you can clean HTML content.    
-Method ```ArturDoruch\Http\Response\ResponseCollection::cleanHtmlBody``` leaves only ```<body>``` content from HTML document,
-removes all whitespaces and tags like: script, noscript, image, iframe, img, meta, input. 
-```php
-$collection->cleanHtmlBody();
-```
-
-You can specified your own custom class to clean HTML code.
-This class must implements ```ArturDoruch\Http\Response\ResponseBodyInterface```.
-To using this class pass it as second parameter in ```ArturDoruch\Http\Response\ResponseCollection::cleanHtmlBody``` method.
-[See example class](Response/Body/Html.php).
-```php
-$htmlBody = new \ArturDoruch\Http\Response\Body\Html();
-$collection->cleanHtmlBody($htmlBody);
-```
-
-If response body have a json format, you can parse it into associative array.
-```php
-$collection->parseJsonBody();
-```
-
-### Get request response
-To get response data call method ```ArturDoruch\Http\Response\ResponseCollection:get```
-which returns ```ArturDoruch\Http\Response\Response``` objects collection.
-If has been making single request then will be returned single ```Response``` object, 
-if multi request array of ```Response``` objects.
-```php
-$collection = $client->request($url);
-$response = $collection->get();
-var_dump($response);
-
-$collection = $client->multiRequest($urls);
-$responses = $collection->get();
-
-foreach ($responses as $response) {
-    var_dump($responses);
+foreach ($response->getHeaders() as $header => $value) {
+    echo sprintf("%s: %s\n", $header, $value);
 }
 ```
 
-### Convert response to JSON or array representation
-You can easy convert ```ArturDoruch\Http\Response\Response``` objects collection
-into json representation
-```php
-$jsonResponse = $collection->toJson(true);
-```
-or array representation 
-```php
-$arrayResponse = $collection->toArray();
-```
-
-If you going to get response collection in json or array representation, you can
-determined which property should be exposed.
-As default are exposed properties:
-<b>headers, statusCode, body</b>.
-Available properties are: 
-<b>headers, statusCode, body, effectiveUrl, url, contentType, redirects, errorMsg, errorNumber</b>.
+### Create a client
 
 ```php
-$collection->expose(array('statusCode', 'body', 'effectiveUrl'));
+use ArturDoruch\Http\Cookie\CookieFile;
+use ArturDoruch\Http\Client;
+
+// Set curl options, which will be used in all http requests.
+$curlOptions = array(
+    'followlocation' => false,
+    'timeout' => 120
+);
+
+// Enabled or disabled throwing RequestException, when request is complete (when "complete" event is fired)
+// and status code is: 0, 4xx or 5xx.
+$throwExceptions = true;
+
+// Set file, where all http session cookies should be stored.
+$filename = 'cookies.txt';
+$cookieFile = new CookieFile($filename);
+
+$client = new Client($curlOptions, $throwExceptions, $cookieFile);
 ```
 
-Exposed all property in JSON or array representation.
+### Sending requests
+
+You can send requests with dedicated methods.
 ```php
-$collection->exposeAll();
+$response = $client->get('http://httpbin.org/get');
+$response = $client->post('http://httpbin.org/post');
+$response = $client->patch('http://httpbin.org/patch');
+$response = $client->put('http://httpbin.org/put');
+$response = $client->delete('http://httpbin.org/delete');
+$response = $client->post('http://httpbin.org/post');
+```
+
+Or create Request object before, and pass it into request() method.  
+```php
+use ArturDoruch\Http\Request;
+
+$request = new Request('DELETE', 'http://httpbin.org/delete');
+$response = $client->request($request);
 ```
