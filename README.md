@@ -77,16 +77,21 @@ $response = $client->request($request);
 
 ### Request options
 
+Request options allows to set request body, headers, cookie, which will be send with http request.
+Those options can be pass into ArturDoruch\Http\Client::get(), 
+ArturDoruch\Http\Client::post(), etc. methods as third argument,
+or into ArturDoruch\Http\Client::createRequest() as fourth argument.
+
 <a name="#cookie"></a>
 ####<i>cookie</i>
 
 <b>type</b>: string
 
 Cookie string must following with this <a href="http://curl.haxx.se/rfc/cookie_spec.html">specification</a>.
-```
-    $client->get('get', [], [
-        'cookie' => 'NAME=VALUE; expires=DATE; path=PATH; domain=DOMAIN_NAME; secure'
-    ]);
+```php
+$client->get('/get', [], [
+    'cookie' => 'NAME=VALUE; expires=DATE; path=PATH; domain=DOMAIN_NAME; secure'
+]);
 ```
 
 <a name="#headers"></a>
@@ -94,14 +99,14 @@ Cookie string must following with this <a href="http://curl.haxx.se/rfc/cookie_s
 
 <b>type</b>: array
 
-```
-    $client->get('get', [], [
-        'headers' => [
-            'User-Agent' => 'testing/1.0',
-            'Accept'     => 'application/json',
-            'X-Foo'      => ['Bar', 'Baz']
-        ]
-    ]);
+```php
+$client->get('/get', [], [
+    'headers' => [
+        'User-Agent' => 'testing/1.0',
+        'Accept'     => 'application/json',
+        'X-Foo'      => ['Bar', 'Baz']
+    ]
+]);
 ```
 
 <a name="#body"></a>
@@ -109,12 +114,45 @@ Cookie string must following with this <a href="http://curl.haxx.se/rfc/cookie_s
 
 <b>type</b>: string|resource
 
+Sets request body as plain text.
+
+```php
+// Send body as plain text taken from resource.
+$resource = fopen('http://httpbin.org', 'r');
+$client->post('/post', [], ['body' => $resource]);
+
+// Send plain text.
+$client->post('/post', [], ['body' => 'Raw data']);
+```
+
 <a name="#json"></a>
 ####<i>json</i>
 
 <b>type</b>: array
 
+```php
+$client->put('/put', [], [
+    'json' => [
+        'foo' => 'bar',
+        'key' => 'value'
+    ]
+]);
+```
+
 <a name="#files"></a>
 ####<i>files</i>
 
 <b>type</b>: PostFile[]
+
+Send files.
+
+```php
+use ArturDoruch\Http\Post\PostFile;
+
+$client->post('/post', [], [
+    'files' => [
+        new PostFile('form_name', 'path/to/file', 'optional_custom_filename'),
+        new PostFile('foo', __DIR__ . '/foo.txt'),
+    ]
+]);
+```
