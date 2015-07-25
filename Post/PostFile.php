@@ -24,9 +24,9 @@ class PostFile
     private $filename;
 
     /**
-     * @param string $name
-     * @param string $file
-     * @param string|null $filename
+     * @param string $name Form name.
+     * @param string $file Path to file.
+     * @param string|null $filename Custom file name.
      */
     public function __construct($name, $file, $filename = null)
     {
