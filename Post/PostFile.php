@@ -5,7 +5,6 @@
 
 namespace ArturDoruch\Http\Post;
 
-
 class PostFile
 {
     /**
