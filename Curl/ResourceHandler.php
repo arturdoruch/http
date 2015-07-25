@@ -7,7 +7,7 @@ namespace ArturDoruch\Http\Curl;
 
 use ArturDoruch\Http\Event\CompleteEvent;
 use ArturDoruch\Http\Event\EventManager;
-use ArturDoruch\Http\Message\Response;
+use ArturDoruch\Http\Response\Response;
 use ArturDoruch\Http\Message\ResponseCollection;
 use ArturDoruch\Http\Request;
 use ArturDoruch\Http\Util\ResponseUtils;
