@@ -10,11 +10,6 @@ use ArturDoruch\Http\Util\HtmlUtils;
 class Response extends MessageHeader implements \JsonSerializable
 {
     /**
-     * @var string
-     */
-    private $body;
-
-    /**
      * @var int
      */
     private $statusCode;
@@ -61,28 +56,13 @@ class Response extends MessageHeader implements \JsonSerializable
      */
     private $curlInfo = array();
 
+    /**
+     * @var string
+     */
+    private $body;
+
     public function __clone()
     {
-    }
-
-    /**
-     * @return string
-     */
-    public function getBody()
-    {
-        return $this->body;
-    }
-
-    /**
-     * @param string $body
-     *
-     * @return $this
-     */
-    public function setBody($body)
-    {
-        $this->body = $body;
-
-        return $this;
     }
 
     /**
@@ -259,6 +239,26 @@ class Response extends MessageHeader implements \JsonSerializable
     public function setCurlInfo(array $curlInfo)
     {
         $this->curlInfo = $curlInfo;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBody()
+    {
+        return $this->body;
+    }
+
+    /**
+     * @param string $body
+     *
+     * @return $this
+     */
+    public function setBody($body)
+    {
+        $this->body = $body;
 
         return $this;
     }

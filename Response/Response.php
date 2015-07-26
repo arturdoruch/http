@@ -8,7 +8,7 @@ namespace ArturDoruch\Http\Response;
 use ArturDoruch\Http\Message\Response as BaseResponse;
 
 /**
- * @deprecated Will be removed in version 4. Use instead ArturDoruch\Http\Message\Response.
+ * deprecated Will be removed in version 4. Use instead ArturDoruch\Http\Message\Response.
  */
 class Response extends BaseResponse
 {

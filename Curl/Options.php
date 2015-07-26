@@ -55,7 +55,7 @@ class Options
         $method = strtoupper($request->getMethod());
         $params = $request->getParameters();
 
-        if ($method !== 'GET') {
+        if ($method !== 'GET' && $method !== 'POST') {
             $options[CURLOPT_CUSTOMREQUEST] = $method;
         }
 
@@ -68,7 +68,7 @@ class Options
             } elseif ($params = $request->getParameters()) {
                 if (!in_array($method, array('GET', 'HEAD'))) {
                     $options[CURLOPT_POSTFIELDS] = $params = http_build_query($params);
-                    $options[CURLOPT_POST] = count($params);
+                    $options[CURLOPT_POST] = true;
                 }
             }
         }
@@ -136,7 +136,7 @@ class Options
         $validOptions = array();
         foreach ($options as $option => $value) {
             $opt = $option;
-            if (strpos($option, 'CURLOPT_') !== false) {
+            if (strpos($option, 'CURLOPT_') !== false || strpos($option, 'CURLINFO_') !== false) {
                 $option = @constant($option);
             } elseif (is_string($option)) {
                 $option = @constant('CURLOPT_' . strtoupper($option));
