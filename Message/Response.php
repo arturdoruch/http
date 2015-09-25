@@ -49,7 +49,7 @@ class Response extends MessageHeader implements \JsonSerializable
     /**
      * @var array
      */
-    private $redirects;
+    private $redirects = array();
 
     /**
      * @var array

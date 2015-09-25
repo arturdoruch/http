@@ -23,7 +23,7 @@ class HttpErrorListener
 
         $code = (string) $event->getResponse()->getStatusCode();
         // Throw an exception for an unsuccessful response
-        if ($code[0] >= 4 || $code[0] === 0) {
+        if ($code[0] >= 4 || $code[0] == 0) {
             throw RequestException::create($event->getResponse());
         }
     }
