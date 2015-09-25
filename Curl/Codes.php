@@ -3,10 +3,9 @@
  * @author Artur Doruch <arturdoruch@interia.pl>
  */
 
-namespace arturdoruch\http\Curl;
+namespace ArturDoruch\Http\Curl;
 
-
-class Code
+class Codes
 {
     /**
      * @var array

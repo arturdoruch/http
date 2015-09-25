@@ -5,7 +5,7 @@
 
 namespace ArturDoruch\Http\Exception;
 
-use ArturDoruch\Http\Curl\Code;
+use ArturDoruch\Http\Curl\Codes;
 use ArturDoruch\Http\Message\Response;
 
 /**
@@ -113,6 +113,6 @@ class RequestException extends \RuntimeException
      */
     private static function isConnectionError(Response $response)
     {
-        return $response->getStatusCode() === 0 && Code::isConnectionError($response->getErrorNumber());
+        return $response->getStatusCode() === 0 && Codes::isConnectionError($response->getErrorNumber());
     }
 }
