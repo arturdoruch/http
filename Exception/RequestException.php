@@ -7,6 +7,7 @@ namespace ArturDoruch\Http\Exception;
 
 use ArturDoruch\Http\Curl\Codes;
 use ArturDoruch\Http\Message\Response;
+use ArturDoruch\Http\Request;
 
 /**
  * HTTP Request exception
@@ -14,14 +15,30 @@ use ArturDoruch\Http\Message\Response;
 class RequestException extends \RuntimeException
 {
     /**
+     * @var Request
+     */
+    private $request;
+
+    /**
      * @var Response
      */
     private $response;
 
-    public function __construct($message, Response $response, \Exception $previous = null)
+    public function __construct($message, Response $response, \Exception $previous = null, Request $request = null)
     {
         $this->response = $response;
+        $this->request = $request;
         parent::__construct($message, $response->getStatusCode(), $previous);
+    }
+
+    /**
+     * Get the request that caused the exception
+     *
+     * @return Request
+     */
+    public function getRequest()
+    {
+        return $this->request;
     }
 
     /**
@@ -32,6 +49,16 @@ class RequestException extends \RuntimeException
     public function getResponse()
     {
         return $this->response;
+    }
+
+    /**
+     * Check if request was set
+     *
+     * @return bool
+     */
+    public function hasRequest()
+    {
+        return $this->request !== null;
     }
 
     /**
@@ -56,15 +83,16 @@ class RequestException extends \RuntimeException
     /**
      * Factory method to create a new exception with a normalized error message
      *
+     * @param Request $request
      * @param Response $response Response received
-     * @param \Exception        $previous Previous exception
+     * @param \Exception $previous Previous exception
      *
      * @return self
      */
-    public static function create(Response $response, \Exception $previous = null)
+    public static function create(Response $response, \Exception $previous = null, Request $request = null)
     {
         if (static::isConnectionError($response)) {
-            return static::createConnect($response, $previous);
+            return static::createConnect($response, $previous, $request);
         }
 
         $level = floor($response->getStatusCode() / 100);
@@ -87,16 +115,17 @@ class RequestException extends \RuntimeException
             $message .= ' [error message] ' . $errorMsg;
         }
 
-        return new $className($message, $response, $previous);
+        return new $className($message, $response, $previous, $request);
     }
 
     /**
+     * @param Request $request
      * @param Response $response
      * @param \Exception $previous
      *
      * @return ConnectException
      */
-    private static function createConnect(Response $response, \Exception $previous = null)
+    private static function createConnect(Response $response, \Exception $previous = null, Request $request = null)
     {
         $className = __NAMESPACE__ . '\\ConnectException';
         $message = sprintf(
@@ -104,7 +133,7 @@ class RequestException extends \RuntimeException
             $response->getRequestUrl(), $response->getErrorNumber(), $response->getErrorMsg()
         );
 
-        return new $className($message, $response, $previous);
+        return new $className($message, $response, $previous, $request);
     }
 
     /**
