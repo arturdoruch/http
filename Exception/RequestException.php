@@ -105,10 +105,13 @@ class RequestException extends \RuntimeException
             $className = __CLASS__;
         }
 
-        $message = static::getErrorLabel($response) . ' [url] ' . $response->getRequestUrl();
-        if ($response->getStatusCode() > 0) {
-            $message .= ' [status code] ' . $response->getStatusCode() . ' [reason phrase] ' . $response->getReasonPhrase();
-        }
+        $message = static::getErrorLabel($response)
+            . ' [url] ' . $response->getRequestUrl()
+            . ' [status code] ' . $response->getStatusCode();
+
+        $message .= $response->getStatusCode() === 0
+            ? ' [error number] ' . $response->getErrorNumber()
+            : ' [reason phrase] ' . $response->getReasonPhrase();
 
         $errorMsg = trim($response->getErrorMsg());
         if (!empty($errorMsg)) {

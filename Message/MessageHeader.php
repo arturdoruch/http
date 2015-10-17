@@ -6,9 +6,9 @@
 namespace ArturDoruch\Http\Message;
 
 /**
- * Trait implementing functionality common to requests and responses.
+ * Class implementing functionality common to requests and responses.
  */
-abstract class MessageHeader
+class MessageHeader
 {
     /**
      * @var array Cached HTTP header collection with lowercase key to values

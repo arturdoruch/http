@@ -51,7 +51,7 @@ class Client extends AbstractClient
     {
         $this->cookieFile = $cookieFile ?: new CookieFile();
         $this->options = new Options($this->cookieFile);
-        $this->options->setDefault($curlOptions);
+        $this->options->setDefaultOptions($curlOptions);
         $this->request = new Request();
 
         parent::__construct();
@@ -90,11 +90,12 @@ class Client extends AbstractClient
     /**
      * Gets default cURL options.
      *
+     * @param bool $keyAsConstantName
      * @return array
      */
-    public function getDefaultCurlOptions()
+    public function getDefaultCurlOptions($keyAsConstantName = false)
     {
-        return $this->options->getDefault();
+        return $this->options->getDefaultOptions($keyAsConstantName);
     }
 
     /**
@@ -104,7 +105,18 @@ class Client extends AbstractClient
      */
     public function setDefaultCurlOptions(array $options)
     {
-        $this->options->setDefault($options);
+        $this->options->setDefaultOptions($options);
+    }
+
+    /**
+     * Gets current cURL options used with the last request.
+     *
+     * @param bool $keyAsConstantName
+     * @return array
+     */
+    public function getCurlOptions($keyAsConstantName = false)
+    {
+        return $this->options->getOptions($keyAsConstantName);
     }
 
     /**
@@ -256,7 +268,6 @@ class Client extends AbstractClient
 
         $curlOptions = $this->options->parse($request, $curlOptions);
         $this->sendRequest($curlOptions, $request);
-
         $responses = $this->resourceHandler->getResponseCollection()->all();
 
         return $this->lastResponse = $responses[0];
@@ -286,7 +297,9 @@ class Client extends AbstractClient
         return $this->resourceHandler->getResponseCollection()->all();
     }
 
-
+    /**
+     * @param string $url
+     */
     private function validateUrl($url)
     {
         if (empty($url)) {

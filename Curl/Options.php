@@ -11,9 +11,18 @@ use ArturDoruch\Http\Request;
 class Options
 {
     /**
-     * @var array Default cURL options.
+     * Default cURL options.
+     *
+     * @var array
      */
-    private $default;
+    private $defaultOptions = array();
+
+    /**
+     * The last request cURL options.
+     *
+     * @var array
+     */
+    private $options = array();
 
     /**
      * Array collection of cURL options with "CURLOPT_" => int pairs.
@@ -47,7 +56,7 @@ class Options
      */
     public function parse(Request $request, array $options = array())
     {
-        $options = $this->validate($options) + $this->default;
+        $options = $this->validate($options) + $this->defaultOptions;
         $options[CURLOPT_URL] = $request->getUrl();
         $options[CURLOPT_COOKIEJAR] = $this->cookieFile->getFilename();
         $options[CURLOPT_COOKIEFILE] = $this->cookieFile->getFilename();
@@ -90,7 +99,7 @@ class Options
             $options[CURLOPT_HTTPHEADER] = $headerLines;
         }
 
-        return $options;
+        return $this->options = $options;
     }
 
     /**
@@ -98,7 +107,7 @@ class Options
      *
      * @param array $options
      */
-    public function setDefault(array $options)
+    public function setDefaultOptions(array $options)
     {
         $defaultOptions = array(
             CURLOPT_USERAGENT => isset($_SERVER['HTTP_USER_AGENT'])
@@ -111,23 +120,50 @@ class Options
             CURLOPT_ENCODING => true,
             CURLOPT_TIMEOUT => 200,
             CURLOPT_CONNECTTIMEOUT => 180,
-            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4
         );
 
-        $this->default = $this->validate($options) + $defaultOptions;
+        $this->defaultOptions = $this->validate($options) + $defaultOptions;
     }
 
     /**
+     * @param bool $keyAsConstantName
      * @return array
      */
-    public function getDefault()
+    public function getDefaultOptions($keyAsConstantName = false)
     {
-        $default = array();
-        foreach ($this->default as $number => $value) {
-            $default[$this->curlOptConstantsHash[$number]] = $value;
+        return $this->prepareOptions($this->defaultOptions, $keyAsConstantName);
+    }
+
+    /**
+     * Gets current cURL options used with the last request.
+     *
+     * @param bool $keyAsConstantName
+     *
+     * @return array
+     */
+    public function getOptions($keyAsConstantName = false)
+    {
+        return $this->prepareOptions($this->options, $keyAsConstantName);
+    }
+
+    /**
+     * @param array $options
+     * @param bool $keyAsConstantName
+     * @return array
+     */
+    private function prepareOptions(array $options, $keyAsConstantName = false)
+    {
+        if ($keyAsConstantName === false) {
+            return $options;
         }
 
-        return $default;
+        $curlOptions = array();
+        foreach ($options as $number => $value) {
+            $curlOptions[$this->curlOptConstantsHash[$number]] = $value;
+        }
+
+        return $curlOptions;
     }
 
 

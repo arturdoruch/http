@@ -22,8 +22,9 @@ class CookieFile
      */
     public function __construct($filename = null)
     {
-        $filename = $filename ?: __DIR__ . '/cookies.txt';
-        $this->setFile($filename);
+        if ($filename) {
+            $this->setFile($filename);
+        }
     }
 
     /**
