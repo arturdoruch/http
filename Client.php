@@ -32,8 +32,7 @@ class Client extends AbstractClient
     private $lastResponse;
 
     /**
-     * @param array $curlOptions
-     * cURL options as array with key, value pairs, when key is cURL option.
+     * @param array      $curlOptions  cURL options as array with key, value pairs, when key is cURL option.     *
      * Key can be in three different formats:
      *  - full constant name or,
      *  - constant integer value or,
@@ -41,24 +40,17 @@ class Client extends AbstractClient
      * For example to set CURLOPT_TIMEOUT to 15 seconds,
      * pass [CURLOPT_TIMEOUT => 15] or [13 => 15] or ['timeout' => 15].
      *
-     * @param bool $throwExceptions
-     * If true and http request return 0 or server or client error status code, then RequestException will be thrown.
-     * @param CookieFile $cookieFile
-     * Set if you want store website session cookies into custom location. As default cookies are storing into
-     * "Cookie/cookies.txt" file.
+     * @param bool       $exceptions   It true RequestException will be thrown, when server, client or connection error occur.
+     * @param CookieFile $cookieFile   Set if you want to store website session cookies into text file.
      */
-    public function __construct(array $curlOptions = array(), $throwExceptions = true, CookieFile $cookieFile = null)
+    public function __construct(array $curlOptions = array(), $exceptions = true, CookieFile $cookieFile = null)
     {
-        $this->cookieFile = $cookieFile ?: new CookieFile();
-        $this->options = new Options($this->cookieFile);
+        $this->cookieFile = $cookieFile;
+        $this->options = new Options($cookieFile);
         $this->options->setDefaultOptions($curlOptions);
         $this->request = new Request();
 
-        parent::__construct();
-
-        if ($throwExceptions === true) {
-            $this->eventManager->enabledHttpErrorListener();
-        }
+        parent::__construct($exceptions);
     }
 
     /**
@@ -70,11 +62,14 @@ class Client extends AbstractClient
     }
 
     /**
+     * @deprecated
      * @param string $filename  Path to file where session cookies will be stored.
      */
     public function setCookieFilename($filename)
     {
-        $this->cookieFile->setFile($filename);
+        if ($this->cookieFile) {
+            $this->cookieFile->setFile($filename);
+        }
     }
 
     /**
@@ -84,7 +79,7 @@ class Client extends AbstractClient
      */
     public function getCookieFilename()
     {
-        return $this->cookieFile->getFilename();
+        return $this->cookieFile ? $this->cookieFile->getFilename() : null;
     }
 
     /**
@@ -266,9 +261,10 @@ class Client extends AbstractClient
     {
         $this->validateUrl($request->getUrl());
 
-        $curlOptions = $this->options->parse($request, $curlOptions);
-        $this->sendRequest($curlOptions, $request);
-        $responses = $this->resourceHandler->getResponseCollection()->all();
+        $handler = new RequestHandler($request);
+        $this->options->prepareOptions($handler, $curlOptions);
+
+        $responses = $this->sendRequest($handler);
 
         return $this->lastResponse = $responses[0];
     }
@@ -291,10 +287,10 @@ class Client extends AbstractClient
             $request = $this->createRequest(null, 'GET');
         }
 
-        $curlOptions = $this->options->parse($request, $curlOptions);
-        $this->sendMultiRequest($urls, $curlOptions, $request);
+        $handler = new RequestHandler($request);
+        $this->options->prepareOptions($handler, $curlOptions);
 
-        return $this->resourceHandler->getResponseCollection()->all();
+        return $this->sendMultiRequest($urls, $handler);
     }
 
     /**
@@ -303,12 +299,12 @@ class Client extends AbstractClient
     private function validateUrl($url)
     {
         if (empty($url)) {
-            throw new \InvalidArgumentException('The "url" parameter cannot be empty.');
+            throw new \InvalidArgumentException('The request url cannot be empty.');
         }
 
         if (!is_string($url)) {
             throw new \InvalidArgumentException(sprintf(
-                    'Invalid "url" parameter. Url must be type of string, but got "%s".', gettype($url)
+                    'The request url must be type of string, but got "%s".', gettype($url)
                 ));
         }
     }

@@ -6,7 +6,7 @@
 namespace ArturDoruch\Http\Curl;
 
 use ArturDoruch\Http\Cookie\CookieFile;
-use ArturDoruch\Http\Request;
+use ArturDoruch\Http\RequestHandler;
 
 class Options
 {
@@ -43,23 +43,34 @@ class Options
      */
     private $cookieFile;
 
-    public function __construct(CookieFile $cookieFile)
+    public function __construct(CookieFile $cookieFile = null)
     {
         $this->cookieFile = $cookieFile;
         $this->setCurlOptConstants();
     }
 
     /**
-     * @param Request $request
-     * @param array   $options
-     * @return array
+     * @param RequestHandler $handler
+     * @param array $options User cURL options
      */
-    public function parse(Request $request, array $options = array())
+    public function prepareOptions(RequestHandler $handler, array $options = array())
     {
+        $request = $handler->getRequest();
+
         $options = $this->validate($options) + $this->defaultOptions;
         $options[CURLOPT_URL] = $request->getUrl();
-        $options[CURLOPT_COOKIEJAR] = $this->cookieFile->getFilename();
-        $options[CURLOPT_COOKIEFILE] = $this->cookieFile->getFilename();
+        $options[CURLOPT_HEADER] = false;
+
+        if ($this->cookieFile) {
+            $options[CURLOPT_COOKIEJAR] = $this->cookieFile->getFilename();
+            $options[CURLOPT_COOKIEFILE] = $this->cookieFile->getFilename();
+        }
+
+        $options[CURLOPT_HEADERFUNCTION] = function ($ch, $header) use ($handler) {
+            $handler->addHeader((int) $ch, trim($header));
+
+            return strlen($header);
+        };
 
         $method = strtoupper($request->getMethod());
         $params = $request->getParameters();
@@ -91,15 +102,13 @@ class Options
         }
 
         if ($headers = $request->getHeaders()) {
-            $headerLines = array();
             foreach ($headers as $header => $value) {
-                $headerLines[] = $header . ': ' . $value;
+                $options[CURLOPT_HTTPHEADER][] = $header . ': ' . $value;
             }
-
-            $options[CURLOPT_HTTPHEADER] = $headerLines;
         }
 
-        return $this->options = $options;
+        $this->options = $options;
+        $handler->setOptions($options);
     }
 
     /**
@@ -110,17 +119,26 @@ class Options
     public function setDefaultOptions(array $options)
     {
         $defaultOptions = array(
-            CURLOPT_USERAGENT => isset($_SERVER['HTTP_USER_AGENT'])
-                ? $_SERVER['HTTP_USER_AGENT']
-                : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 Firefox/35.0',
-            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_RETURNTRANSFER => true, //false
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_HEADER => true,
-            CURLOPT_ENCODING => true,
             CURLOPT_TIMEOUT => 200,
             CURLOPT_CONNECTTIMEOUT => 180,
-            CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4
+            CURLOPT_ENCODING => '',
+            CURLOPT_HTTPHEADER => array(
+                //'Accept-Encoding:',
+                'User-Agent: ' . (isset($_SERVER['HTTP_USER_AGENT'])
+                    ? $_SERVER['HTTP_USER_AGENT']
+                    : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 Firefox/35.0')
+            ),
+            //CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+
+            /*CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+            CURLE_FTP_SSL_FAILED => true,
+            181 => 3,
+            CURLOPT_FILE => fopen('php://temp', 'w+'),
+            */
         );
 
         $this->defaultOptions = $this->validate($options) + $defaultOptions;
@@ -132,7 +150,7 @@ class Options
      */
     public function getDefaultOptions($keyAsConstantName = false)
     {
-        return $this->prepareOptions($this->defaultOptions, $keyAsConstantName);
+        return $this->collectOptions($this->defaultOptions, $keyAsConstantName);
     }
 
     /**
@@ -144,7 +162,7 @@ class Options
      */
     public function getOptions($keyAsConstantName = false)
     {
-        return $this->prepareOptions($this->options, $keyAsConstantName);
+        return $this->collectOptions($this->options, $keyAsConstantName);
     }
 
     /**
@@ -152,7 +170,7 @@ class Options
      * @param bool $keyAsConstantName
      * @return array
      */
-    private function prepareOptions(array $options, $keyAsConstantName = false)
+    private function collectOptions(array $options, $keyAsConstantName = false)
     {
         if ($keyAsConstantName === false) {
             return $options;

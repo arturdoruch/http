@@ -6,19 +6,19 @@
 namespace ArturDoruch\Http\Message;
 
 /**
- * Class implementing functionality common to requests and responses.
+ * Trait implementing functionality common to requests and responses.
  */
-class MessageHeader
+trait MessageTrait
 {
     /**
      * @var array Cached HTTP header collection with lowercase key to values
      */
-    protected $headers = array();
+    private $headers = array();
 
     /**
      * @var array Actual key to list of values per header.
      */
-    protected $headerLines = array();
+    private $headerLines = array();
 
     /**
      * @return array

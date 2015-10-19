@@ -5,11 +5,13 @@
 
 namespace ArturDoruch\Http;
 
-use ArturDoruch\Http\Message\MessageHeader;
+use ArturDoruch\Http\Message\MessageTrait;
 use ArturDoruch\Http\Message\RequestBody;
 
-class Request extends MessageHeader
+class Request
 {
+    use MessageTrait;
+
     /**
      * @var string
      */

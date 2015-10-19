@@ -20,11 +20,9 @@ class CookieFile
     /**
      * @param null|string $filename Cookie file name.
      */
-    public function __construct($filename = null)
+    public function __construct($filename)
     {
-        if ($filename) {
-            $this->setFile($filename);
-        }
+        $this->setFile($filename);
     }
 
     /**

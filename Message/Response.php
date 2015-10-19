@@ -5,21 +5,13 @@
 
 namespace ArturDoruch\Http\Message;
 
+use ArturDoruch\Http\Redirect;
 use ArturDoruch\Http\Util\HtmlUtils;
 
-class Response extends MessageHeader implements \JsonSerializable
+class Response implements \JsonSerializable
 {
-    /**
-     * @var int
-     */
-    private $statusCode;
-
-    /**
-     * The reason phrase of the response (human readable code).
-     *
-     * @var string
-     */
-    private $reasonPhrase;
+    use ResponseTrait;
+    use MessageTrait;
 
     /**
      * @var string
@@ -123,46 +115,7 @@ class Response extends MessageHeader implements \JsonSerializable
     }
 
     /**
-     * @return int
-     */
-    public function getStatusCode()
-    {
-        return $this->statusCode;
-    }
-
-    /**
-     * @param int $statusCode
-     * @return $this
-     */
-    public function setStatusCode($statusCode)
-    {
-        $this->statusCode = $statusCode;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getReasonPhrase()
-    {
-        return $this->reasonPhrase;
-    }
-
-    /**
-     * @param string $reasonPhrase
-     *
-     * @return $this
-     */
-    public function setReasonPhrase($reasonPhrase)
-    {
-        $this->reasonPhrase = $reasonPhrase;
-
-        return $this;
-    }
-
-    /**
-     * @return array
+     * @return Redirect[]
      */
     public function getRedirects()
     {
@@ -170,12 +123,13 @@ class Response extends MessageHeader implements \JsonSerializable
     }
 
     /**
-     * @param array $redirects
+     * @param Redirect $redirect
+     *
      * @return $this
      */
-    public function setRedirects($redirects)
+    public function addRedirect(Redirect $redirect)
     {
-        $this->redirects = $redirects;
+        $this->redirects[] = $redirect;
 
         return $this;
     }
@@ -371,6 +325,10 @@ class Response extends MessageHeader implements \JsonSerializable
         return $this;
     }
 
+    /**
+     * @param array $properties
+     * @param bool  $all
+     */
     private function setExpose(array $properties, $all = false)
     {
         if ($all === true) {
