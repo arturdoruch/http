@@ -30,10 +30,10 @@ class RequestHandler
      */
     private $request;
 
-    /**
+    /*
      * @var array
      */
-    private $unusedInfoKeys = array('url', 'content_type', 'http_code', 'redirect_count');
+    //private $unusedInfoKeys = array('url', 'content_type', 'http_code', 'redirect_count');
 
     /**
      * @param Request $request
@@ -133,20 +133,22 @@ class RequestHandler
             ->setErrorNumber($errorNo)
             ->setBody(curl_multi_getcontent($ch));
 
-        $headersSet = explode("\n\n", trim($this->headers[$resourceId]));
-        $response->setHeaders($this->parseHeaders(array_pop($headersSet)));
+        if (isset($this->headers[$resourceId])) {
+            $headersSet = explode("\n\n", trim($this->headers[$resourceId]));
+            $response->setHeaders($this->parseHeaders(array_pop($headersSet)));
 
-        if (count($headersSet) > 0) {
-            foreach ($headersSet as $headers) {
-                $status = $this->parseStatusLine($headers);
+            if (count($headersSet) > 0) {
+                foreach ($headersSet as $headers) {
+                    $status = $this->parseStatusLine($headers);
 
-                $redirect = new Redirect();
-                $redirect
-                    ->setHeaders($this->parseHeaders($headers))
-                    ->setStatusCode($status['code'])
-                    ->setReasonPhrase($status['reason_phrase']);
+                    $redirect = new Redirect();
+                    $redirect
+                        ->setHeaders($this->parseHeaders($headers))
+                        ->setStatusCode($status['code'])
+                        ->setReasonPhrase($status['reason_phrase']);
 
-                $response->addRedirect($redirect);
+                    $response->addRedirect($redirect);
+                }
             }
         }
 
