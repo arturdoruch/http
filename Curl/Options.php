@@ -60,10 +60,10 @@ class Options
         $options = $this->validate($options) + $this->defaultOptions;
         $options[CURLOPT_URL] = $request->getUrl();
         $options[CURLOPT_HEADER] = false;
+        //$options[CURLOPT_HTTPHEADER][] = 'Host: ' . parse_url($request->getUrl(), PHP_URL_HOST);
 
-        if ($this->cookieFile) {
-            $options[CURLOPT_COOKIEJAR] = $this->cookieFile->getFilename();
-            $options[CURLOPT_COOKIEFILE] = $this->cookieFile->getFilename();
+        foreach ($request->getHeaders() as $header => $value) {
+            $options[CURLOPT_HTTPHEADER][] = $header . ': ' . $value;
         }
 
         $options[CURLOPT_HEADERFUNCTION] = function ($ch, $header) use ($handler) {
@@ -71,6 +71,11 @@ class Options
 
             return strlen($header);
         };
+
+        if ($this->cookieFile) {
+            $options[CURLOPT_COOKIEJAR] = $this->cookieFile->getFilename();
+            $options[CURLOPT_COOKIEFILE] = $this->cookieFile->getFilename();
+        }
 
         $method = strtoupper($request->getMethod());
         $params = $request->getParameters();
@@ -101,12 +106,6 @@ class Options
             }
         }
 
-        if ($headers = $request->getHeaders()) {
-            foreach ($headers as $header => $value) {
-                $options[CURLOPT_HTTPHEADER][] = $header . ': ' . $value;
-            }
-        }
-
         $this->options = $options;
         $handler->setOptions($options);
     }
@@ -119,26 +118,20 @@ class Options
     public function setDefaultOptions(array $options)
     {
         $defaultOptions = array(
-            CURLOPT_RETURNTRANSFER => true, //false
+            CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_TIMEOUT => 200,
             CURLOPT_CONNECTTIMEOUT => 180,
             CURLOPT_ENCODING => '',
             CURLOPT_HTTPHEADER => array(
-                //'Accept-Encoding:',
+                'Accept-Encoding: ',
                 'User-Agent: ' . (isset($_SERVER['HTTP_USER_AGENT'])
                     ? $_SERVER['HTTP_USER_AGENT']
-                    : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 Firefox/35.0')
+                    : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0')
             ),
-            //CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
-
-            /*CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'GET',
-            CURLE_FTP_SSL_FAILED => true,
-            181 => 3,
-            CURLOPT_FILE => fopen('php://temp', 'w+'),
-            */
+            // CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+            // CURLOPT_FILE => fopen('php://temp', 'w+'),
         );
 
         $this->defaultOptions = $this->validate($options) + $defaultOptions;
