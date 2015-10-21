@@ -32,7 +32,7 @@ class Client extends AbstractClient
     private $lastResponse;
 
     /**
-     * @param array      $curlOptions  cURL options as array with key, value pairs, when key is cURL option.     *
+     * @param array      $curlOptions  cURL options as array with key, value pairs, when key is cURL option.
      * Key can be in three different formats:
      *  - full constant name or,
      *  - constant integer value or,
@@ -40,17 +40,17 @@ class Client extends AbstractClient
      * For example to set CURLOPT_TIMEOUT to 15 seconds,
      * pass [CURLOPT_TIMEOUT => 15] or [13 => 15] or ['timeout' => 15].
      *
-     * @param bool       $exceptions   It true RequestException will be thrown, when server, client or connection error occur.
+     * @param bool       $throwException It true RequestException will be thrown, when server, client or connection error occur.
      * @param CookieFile $cookieFile   Set if you want to store website session cookies into text file.
      */
-    public function __construct(array $curlOptions = array(), $exceptions = true, CookieFile $cookieFile = null)
+    public function __construct(array $curlOptions = array(), $throwException = true, CookieFile $cookieFile = null)
     {
         $this->cookieFile = $cookieFile;
         $this->options = new Options($cookieFile);
         $this->options->setDefaultOptions($curlOptions);
         $this->request = new Request();
 
-        parent::__construct($exceptions);
+        parent::__construct($throwException);
     }
 
     /**
@@ -125,13 +125,13 @@ class Client extends AbstractClient
     /**
      * Adds event listener, that will be called after HTTP request is complete.
      *
-     * @param string   $eventName [complete]
+     * @param string   $eventName One of RequestEvents constants.
      * @param callable $listener
      * @param int      $priority
      */
-    public function addListener($eventName, $listener, $priority = 0)
+    public function addListener($eventName, callable $listener, $priority = 0)
     {
-        $this->eventManager->addListener($eventName, $listener, $priority);
+        $this->dispatcherHelper->getDispatcher()->addListener($eventName, $listener, $priority);
     }
 
     /**

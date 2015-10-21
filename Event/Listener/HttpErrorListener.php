@@ -3,8 +3,9 @@
  * @author Artur Doruch <arturdoruch@interia.pl>
  */
 
-namespace ArturDoruch\Http\Event;
+namespace ArturDoruch\Http\Event\Listener;
 
+use ArturDoruch\Http\Event\CompleteEvent;
 use ArturDoruch\Http\Exception\RequestException;
 
 /**

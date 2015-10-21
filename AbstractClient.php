@@ -5,17 +5,12 @@
 
 namespace ArturDoruch\Http;
 
-use ArturDoruch\Http\Event\CompleteEvent;
-use ArturDoruch\Http\Event\EventManager;
+use ArturDoruch\Http\Event\EventDispatcherHelper;
 use ArturDoruch\Http\Message\ResponseCollection;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 abstract class AbstractClient
 {
-    /**
-     * @var EventManager
-     */
-    protected $eventManager;
-
     /**
      * @var int Number of multi connections.
      */
@@ -41,15 +36,20 @@ abstract class AbstractClient
      */
     private $responseCollection;
 
+    /**
+     * @var EventDispatcherHelper
+     */
+    protected $dispatcherHelper;
 
-    public function __construct($exceptions)
+    /**
+     * @param bool $throwException
+     */
+    public function __construct($throwException)
     {
-        $this->eventManager = new EventManager();
-        if ($exceptions === true) {
-            $this->eventManager->enabledHttpErrorListener();
+        $this->dispatcherHelper = new EventDispatcherHelper();
+        if ($throwException === true) {
+            $this->dispatcherHelper->addHttpErrorListener();
         }
-
-        $this->completeEvent = new CompleteEvent();
     }
 
     /**
@@ -62,8 +62,9 @@ abstract class AbstractClient
         $this->responseCollection = new ResponseCollection();
 
         $ch = curl_init();
-
         curl_setopt_array($ch, $handler->getOptions());
+
+        $this->dispatcherHelper->requestBefore($handler->getRequest(), $this);
         curl_exec($ch);
 
         $this->handleResource($handler, $ch);
@@ -81,10 +82,8 @@ abstract class AbstractClient
     protected function sendMultiRequest(array $urls, RequestHandler $handler)
     {
         $this->responseCollection = new ResponseCollection();
-
         $this->index = 0;
         $this->requestUrls = array_values($urls);
-        $options = $handler->getOptions();
 
         $mh = curl_multi_init();
         $multiExec = function () use ($mh, &$mrc, &$active) {
@@ -95,7 +94,7 @@ abstract class AbstractClient
 
         // Add multiple URLs to the multi handle
         for ($i = 0; $i < $this->connections; $i++) {
-            $this->addUrlToMultiHandle($mh, $options);
+            $this->addUrlToMultiHandle($mh, $handler);
         }
 
         // Initial execution
@@ -120,7 +119,7 @@ abstract class AbstractClient
                 //curl_close($h);
 
                 // Add a new url and do work
-                if ($this->addUrlToMultiHandle($mh, $options)) {
+                if ($this->addUrlToMultiHandle($mh, $handler)) {
                     $multiExec();
                 }
             }
@@ -135,25 +134,29 @@ abstract class AbstractClient
      * Adds a url to the multi handle
      *
      * @param resource $mh Multi handle
-     * @param array $options
+     * @param RequestHandler $handler
+     * @internal param array $options
      * @return bool
      */
-    private function addUrlToMultiHandle($mh, array $options)
+    private function addUrlToMultiHandle($mh, RequestHandler $handler)
     {
+        $options = $handler->getOptions();
         if (!isset($this->requestUrls[$this->index])) {
             return false;
         }
 
         $ch = curl_init();
-        $options[CURLOPT_URL] = trim($this->requestUrls[$this->index]);
+        $options[CURLOPT_URL] = $url = trim($this->requestUrls[$this->index]);
 
-        $this->setTrackingUrl($ch, $options[CURLOPT_URL]);
+        $this->setTrackingUrl($ch, $url);
 
         curl_setopt_array($ch, $options);
         // Add it to the multi handle
         curl_multi_add_handle($mh, $ch);
         // Increment so next url is used next time
         $this->index++;
+
+        $this->dispatcherHelper->requestBefore($handler->getRequest()->setUrl($url), $this);
 
         return true;
     }
@@ -170,9 +173,7 @@ abstract class AbstractClient
         // Create response
         $response = $handler->createResponse($ch);
         // Dispatch event
-        $this->completeEvent->setMultiRequest($multiRequest);
-        $this->completeEvent->setData($handler->getRequest(), $response, $this);
-        $this->eventManager->dispatch('complete', $this->completeEvent);
+        $this->dispatcherHelper->requestComplete($handler->getRequest(), $response, $this, $multiRequest);
         // Add response to collection
         $this->responseCollection->add($response, (int) $ch);
     }
