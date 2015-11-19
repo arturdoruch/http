@@ -126,9 +126,10 @@ class Options
             CURLOPT_ENCODING => '',
             CURLOPT_HTTPHEADER => array(
                 'Accept-Encoding: ',
-                'User-Agent: ' . (isset($_SERVER['HTTP_USER_AGENT'])
+                'User-Agent: Client http'
+                /*'User-Agent: ' . (isset($_SERVER['HTTP_USER_AGENT'])
                     ? $_SERVER['HTTP_USER_AGENT']
-                    : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0')
+                    : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0')*/
             ),
             // CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
             // CURLOPT_FILE => fopen('php://temp', 'w+'),
