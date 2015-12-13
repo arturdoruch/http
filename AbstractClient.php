@@ -6,8 +6,8 @@
 namespace ArturDoruch\Http;
 
 use ArturDoruch\Http\Event\EventDispatcherHelper;
+use ArturDoruch\Http\Message\Response;
 use ArturDoruch\Http\Message\ResponseCollection;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 
 abstract class AbstractClient
 {
@@ -55,7 +55,7 @@ abstract class AbstractClient
     /**
      * @param RequestHandler $handler
      *
-     * @return \ArturDoruch\Http\Message\Response[]
+     * @return Response[]
      */
     protected function sendRequest(RequestHandler $handler)
     {
@@ -77,7 +77,7 @@ abstract class AbstractClient
      * @param array $urls
      * @param RequestHandler $handler
      *
-     * @return \ArturDoruch\Http\Message\Response[]
+     * @return Response[]
      */
     protected function sendMultiRequest(array $urls, RequestHandler $handler)
     {
