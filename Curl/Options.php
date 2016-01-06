@@ -99,10 +99,8 @@ class Options
         }
 
         if ($cookies = $request->getCookies()) {
-            if (count($cookies) === 1) {
+            if (count($cookies) > 0) {
                 $options[CURLOPT_COOKIE] = $cookies[0];
-            } else {
-                // ToDo Write $cookies in cookies.txt file ?
             }
         }
 
@@ -127,9 +125,6 @@ class Options
             CURLOPT_HTTPHEADER => array(
                 'Accept-Encoding: ',
                 'User-Agent: Client http'
-                /*'User-Agent: ' . (isset($_SERVER['HTTP_USER_AGENT'])
-                    ? $_SERVER['HTTP_USER_AGENT']
-                    : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0')*/
             ),
             // CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
             // CURLOPT_FILE => fopen('php://temp', 'w+'),
