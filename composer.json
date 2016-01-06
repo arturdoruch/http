@@ -1,0 +1,22 @@
+{
+    "name": "arturdoruch/http",
+    "type": "library",
+    "description": "HTTP client for making http requests in enjoyable way.",
+    "license": "MIT",
+    "keywords": ["http request", "http client", "curl", "multi requests"],
+    "authors": [
+        {
+            "name": "Artur Doruch",
+            "email": "arturdoruch@interia.pl"
+        }
+    ],
+    "require": {
+        "php": ">=5.4",
+        "symfony/event-dispatcher": ">=2.6"
+    },
+    "autoload": {
+        "psr-4" : {
+            "ArturDoruch\\Http\\" : ""
+        }
+    }
+}
