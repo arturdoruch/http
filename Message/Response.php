@@ -8,7 +8,7 @@ namespace ArturDoruch\Http\Message;
 use ArturDoruch\Http\Redirect;
 use ArturDoruch\Http\Util\HtmlUtils;
 
-class Response implements \JsonSerializable
+class Response implements \JsonSerializable, ResponseInterface
 {
     use ResponseTrait;
     use MessageTrait;
@@ -298,7 +298,7 @@ class Response implements \JsonSerializable
 
     /**
      * Determines which property in Response object should be available
-     * in serialized to json object "toJson" or array "toArray".
+     * in serialized to json object (method ::toJson()) or array (method ::toArray()).
      * As default are exposed: headers, httpCode, body.
      *
      * @param array $properties

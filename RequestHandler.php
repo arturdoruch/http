@@ -6,6 +6,7 @@
 namespace ArturDoruch\Http;
 
 use ArturDoruch\Http\Message\Response;
+use ArturDoruch\Http\Message\ResponseInterface;
 use ArturDoruch\Http\Util\ResponseUtils;
 
 class RequestHandler
@@ -135,20 +136,18 @@ class RequestHandler
 
         if (isset($this->headers[$resourceId])) {
             $headersSet = explode("\n\n", trim($this->headers[$resourceId]));
-            $response->setHeaders($this->parseHeaders(array_pop($headersSet)));
 
-            if (count($headersSet) > 0) {
-                foreach ($headersSet as $headers) {
-                    $status = $this->parseStatusLine($headers);
+            $this->parseResponseHeaders($response, array_pop($headersSet));
+            $response
+                ->setStatusCode($info['http_code'])
+                ->setReasonPhrase($reasonPhrase);
 
-                    $redirect = new Redirect();
-                    $redirect
-                        ->setHeaders($this->parseHeaders($headers))
-                        ->setStatusCode($status['code'])
-                        ->setReasonPhrase($status['reason_phrase']);
+            // Set redirects
+            foreach ($headersSet as $headers) {
+                $redirect = new Redirect();
+                $this->parseResponseHeaders($redirect, $headers);
 
-                    $response->addRedirect($redirect);
-                }
+                $response->addRedirect($redirect);
             }
         }
 
@@ -162,41 +161,31 @@ class RequestHandler
     }
 
     /**
-     * @param string $headerLines
+     * Parses response headers and fills Response object with parsed values.
      *
-     * @return array
+     * @param ResponseInterface $response
+     * @param string            $headerLines
      */
-    private function parseHeaders($headerLines)
+    private function parseResponseHeaders(ResponseInterface $response, $headerLines)
     {
-        $data = array();
-        $headers = explode("\n", $headerLines);
+        $headerLines = explode("\n", $headerLines);
+        $statusLine = array_shift($headerLines);
 
-        foreach ($headers as $header) {
-            $parts = explode(': ', $header);
-            $data[$parts[0]] = isset($parts[1]) ? trim($parts[1]) : null;
-        }
+        // Parse header status line
+        list($protocol, $statusCode, $reasonPhrase) = explode(' ', $statusLine);
+        $response
+            ->setProtocol($protocol)
+            ->setStatusCode($statusCode)
+            ->setReasonPhrase($reasonPhrase);
 
-        return $data;
-    }
-
-    /**
-     * @param string $headerLines
-     * @return array
-     */
-    private function parseStatusLine($headerLines)
-    {
-        $headers = explode("\n", $headerLines);
-
-        if (!empty($headers)) {
-            list($protocol, $statusCode, $reasonPhrase) = explode(' ', $headers[0]);
-
-            return array(
-                'code' => $statusCode,
-                'reason_phrase' => $reasonPhrase
+        // Set headers
+        foreach ($headerLines as $headerLine) {
+            $parts = explode(': ', $headerLine);
+            $response->addHeader(
+                $parts[0],
+                (isset($parts[1]) ? $parts[1] : null)
             );
         }
-
-        return array();
     }
 
 }
