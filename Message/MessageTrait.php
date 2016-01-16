@@ -11,6 +11,11 @@ namespace ArturDoruch\Http\Message;
 trait MessageTrait
 {
     /**
+     * @var string The http protocol
+     */
+    private $protocol = 'HTTP/1.1';
+
+    /**
      * @var array Cached HTTP header collection with lowercase key to values
      */
     private $headers = array();
@@ -19,6 +24,26 @@ trait MessageTrait
      * @var array Actual key to list of values per header.
      */
     private $headerLines = array();
+
+    /**
+     * @return string The http protocol
+     */
+    public function getProtocol()
+    {
+        return $this->protocol;
+    }
+
+    /**
+     * @param string $protocol
+     *
+     * @return $this
+     */
+    public function setProtocol($protocol)
+    {
+        $this->protocol = $protocol;
+
+        return $this;
+    }
 
     /**
      * @return array
@@ -52,19 +77,6 @@ trait MessageTrait
     public function hasHeader($name)
     {
         return isset($this->headers[strtolower($name)]);
-    }
-
-    /**
-     * @param array $headers
-     * @return $this
-     */
-    public function setHeaders(array $headers)
-    {
-        foreach ($headers as $name => $value) {
-            $this->addHeader($name, $value);
-        }
-
-        return $this;
     }
 
     /**
