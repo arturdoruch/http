@@ -58,7 +58,7 @@ class Options
         $request = $handler->getRequest();
 
         $options = $this->validate($options) + $this->defaultOptions;
-        $options[CURLOPT_URL] = $request->getUrl();
+        $options[CURLOPT_URL] = $url = $request->getUrl();
         $options[CURLOPT_HEADER] = false;
         //$options[CURLOPT_HTTPHEADER][] = 'Host: ' . parse_url($request->getUrl(), PHP_URL_HOST);
 
@@ -80,22 +80,30 @@ class Options
         $method = strtoupper($request->getMethod());
         $params = $request->getParameters();
 
-        if ($method !== 'GET') {
+        if ($method === 'HEAD') {
+            $options[CURLOPT_NOBODY] = true;
+        } elseif ($method !== 'GET' && $method !== 'POST') {
             $options[CURLOPT_CUSTOMREQUEST] = $method;
         }
 
-        if (($method === 'GET' || $method === 'HEAD') && $params) {
-            $options[CURLOPT_URL] .= '?' . http_build_query($params);
-        } else {
+        $isFormMethod = in_array($method, array('POST', 'PUT', 'PATCH'));
+
+        if ($method !== 'GET' && $method !== 'HEAD') {
             if ($request->getBody()) {
                 $options[CURLOPT_POSTFIELDS] = $request->getBody();
+            } elseif ($isFormMethod) {
                 $options[CURLOPT_POST] = true;
-            } elseif ($params = $request->getParameters()) {
-                if (!in_array($method, array('GET', 'HEAD'))) {
-                    $options[CURLOPT_POSTFIELDS] = $params = http_build_query($params);
-                    $options[CURLOPT_POST] = true;
-                }
+                $options[CURLOPT_POSTFIELDS] = http_build_query($params);
             }
+        }
+
+        if (!$isFormMethod && $params) {
+            // Add url query from form parameters.
+            if (($pos = strpos($url, '?')) !== false) {
+                $url = substr($url, 0, $pos);
+            }
+            $options[CURLOPT_URL] = $url . '?' . http_build_query($params);
+            $request->setUrl($options[CURLOPT_URL]);
         }
 
         if ($cookies = $request->getCookies()) {
