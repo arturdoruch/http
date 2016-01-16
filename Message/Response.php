@@ -58,6 +58,16 @@ class Response implements \JsonSerializable, ResponseInterface
     }
 
     /**
+     * Gets response raw headers and body
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->getRawHeaders() . $this->body;
+    }
+
+    /**
      * @return string
      */
     public function getEffectiveUrl()
@@ -215,6 +225,23 @@ class Response implements \JsonSerializable, ResponseInterface
         $this->body = $body;
 
         return $this;
+    }
+
+    /**
+     * Gets the raw headers as a string
+     *
+     * @return string
+     */
+    public function getRawHeaders()
+    {
+        $rawHeaders = $this->getProtocol() . ' ' . $this->statusCode . ' ' . $this->reasonPhrase . "\r\n";
+        $headers = $this->getHeaders();
+
+        foreach ($headers as $name => $value) {
+            $rawHeaders .= $name . ": " . $value . "\r\n";
+        }
+
+        return $rawHeaders . "\r\n";
     }
 
     /**
