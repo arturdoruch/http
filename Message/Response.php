@@ -245,7 +245,9 @@ class Response implements \JsonSerializable, ResponseInterface
     }
 
     /**
-     * Converts Response into json.
+     * Converts Response object into json.
+     * To determine which object properties should be available in returned json
+     * use method expose() or exposeAll() to expose all properties.
      *
      * @param bool $prettyPrint
      *
@@ -257,7 +259,9 @@ class Response implements \JsonSerializable, ResponseInterface
     }
 
     /**
-     * Converts Response into associative array.
+     * Converts Response object into associative array.
+     * To determine which object properties should be available in returned array
+     * use method expose() or exposeAll() to expose all properties.
      *
      * @return array
      */
@@ -267,7 +271,7 @@ class Response implements \JsonSerializable, ResponseInterface
     }
 
     /**
-     * Parses response body where content type is type of 'application/json' into associative array.
+     * Parses response body with content type 'application/json' into associative array.
      *
      * @return $this
      */
@@ -324,11 +328,12 @@ class Response implements \JsonSerializable, ResponseInterface
     }
 
     /**
-     * Determines which property in Response object should be available
-     * in serialized to json object (method ::toJson()) or array (method ::toArray()).
-     * As default are exposed: headers, httpCode, body.
+     * Determines which Response object properties should be available
+     * in value returned by methods Response::toJson() or Response::toArray().
      *
-     * @param array $properties
+     * @param array $properties The Response object properties names. One of:
+     * protocol, statusCode, reasonPhrase, headers, headerLines, contentType,
+     * body, requestUrl, effectiveUrl, errorMsg, errorNumber, curlInfo.
      *
      * @return $this;
      */
@@ -340,8 +345,8 @@ class Response implements \JsonSerializable, ResponseInterface
     }
 
     /**
-     * Sets to all property in Response object as available
-     * in serialized to json object "toJson" or array "toArray".
+     * Sets all Response object properties (except "redirects") to available
+     * in value returned by methods Response::toJson() or Response::toArray().
      *
      * @return $this;
      */
@@ -379,22 +384,25 @@ class Response implements \JsonSerializable, ResponseInterface
             'statusCode',
             'body'
         );
+        static $excludedProperties = array(
+            'redirects' => true
+        );
 
-        if (!$properties) {
-            $data = array();
-
-            foreach ($propertiesToExpose as $property) {
-                if (property_exists($this, $property)) {
-                    $data[$property] = $this->$property;
-                }
-            }
-
-            return $data;
-        } else {
+        if ($properties) {
             $propertiesToExpose = $properties;
 
             return null;
         }
+
+        $data = array();
+
+        foreach ($propertiesToExpose as $property) {
+            if (property_exists($this, $property) && !isset($excludedProperties[$property])) {
+                $data[$property] = $this->$property;
+            }
+        }
+
+        return $data;
     }
 
 }

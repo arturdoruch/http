@@ -32,16 +32,16 @@ class Client extends AbstractClient
     private $lastResponse;
 
     /**
-     * @param array      $curlOptions  cURL options as array with key, value pairs, when key is cURL option.
-     * Key can be in three different formats:
-     *  - full constant name or,
-     *  - constant integer value or,
-     *  - constant name without part "CURLOPT_".
-     * For example to set CURLOPT_TIMEOUT to 15 seconds,
-     * pass [CURLOPT_TIMEOUT => 15] or [13 => 15] or ['timeout' => 15].
-     *
-     * @param bool       $throwException It true RequestException will be thrown, when server, client or connection error occur.
-     * @param CookieFile $cookieFile   Set if you want to store website session cookies into text file.
+     * @param array $curlOptions     cURL options as array with key, value pairs, where
+     *                               key is cURL option. Key can be in three different formats:
+     *                                - full constant name or,
+     *                                - constant integer value or,
+     *                                - constant name without part "CURLOPT_".
+     *                               For example to set CURLOPT_TIMEOUT to 15 seconds,
+     *                               pass [CURLOPT_TIMEOUT => 15] or [13 => 15] or ['timeout' => 15].
+     * @param bool $throwException   It true RequestException will be thrown, when server, client
+     *                               or connection error occur.
+     * @param CookieFile $cookieFile Set if you want to store website session cookies into text file.
      */
     public function __construct(array $curlOptions = array(), $throwException = true, CookieFile $cookieFile = null)
     {
@@ -54,7 +54,7 @@ class Client extends AbstractClient
     }
 
     /**
-     * @param int $connections Number of multi connections.
+     * @param int $connections Number of parallel connections.
      */
     public function setConnections($connections)
     {
@@ -123,11 +123,16 @@ class Client extends AbstractClient
     }
 
     /**
-     * Adds event listener, that will be called after HTTP request is complete.
+     * Adds listener to one of HTTP request event:
+     * BEFORE - event called just before send HTTP request,
+     * COMPLETE - event called when HTTP request is done.
      *
      * @param string   $eventName One of RequestEvents constants.
-     * @param callable $listener
-     * @param int      $priority
+     * @param callable $listener  The listener function receive one argument - event object.
+     *                            For BEFORE event will be ArturDoruch\Http\Event\BeforeEvent,
+     *                            for COMPLETE event will be ArturDoruch\Http\Event\CompleteEvent object.
+     * @param int      $priority  The higher this value, the earlier an event
+     *                            listener will be triggered in the chain.
      */
     public function addListener($eventName, callable $listener, $priority = 0)
     {
@@ -210,7 +215,7 @@ class Client extends AbstractClient
     }
 
     /**
-     * Creates Request object with given parameters.
+     * Creates an Request object.
      *
      * @param string $url
      * @param string $method
@@ -270,10 +275,12 @@ class Client extends AbstractClient
     }
 
     /**
+     * Makes multi parallel requests.
+     *
      * @param array   $urls Collection of urls
      * @param Request $request
      * @param array   $curlOptions
-     * @param int     $connections Number of maximum multi connections
+     * @param int     $connections Number of maximum parallel connections
      *
      * @return Response[]
      */

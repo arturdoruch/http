@@ -9,7 +9,7 @@ use ArturDoruch\Http\Event\CompleteEvent;
 use ArturDoruch\Http\Exception\RequestException;
 
 /**
- * Throws exceptions when a 4xx or 5xx response is received
+ * Throws exceptions when response status code is 4xx, 5xx or 0
  */
 class HttpErrorListener
 {

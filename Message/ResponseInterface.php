@@ -47,12 +47,14 @@ interface ResponseInterface
     public function setProtocol($protocol);
 
     /**
+     * Gets response headers
+     *
      * @return array
      */
     public function getHeaders();
 
     /**
-     * Gets single header fields by specified name.
+     * Gets single header field by specified name.
      *
      * @param string $name Header name.
      *
@@ -61,7 +63,7 @@ interface ResponseInterface
     public function getHeader($name);
 
     /**
-     * Checks if given hearer name exist in headers array.
+     * Checks if given header name exist in headers array.
      *
      * @param string $name Header name.
      *

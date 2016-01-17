@@ -31,10 +31,10 @@ class RequestHandler
      */
     private $request;
 
-    /*
+    /**
      * @var array
      */
-    //private $unusedInfoKeys = array('url', 'content_type', 'http_code', 'redirect_count');
+    private $unusedInfoKeys = array('url', 'content_type', 'http_code', 'redirect_count');
 
     /**
      * @param Request $request
@@ -151,11 +151,12 @@ class RequestHandler
             }
         }
 
-        /*foreach ($this->unusedInfoKeys as $key) {
+        // Set curl info
+        foreach ($this->unusedInfoKeys as $key) {
             unset($info[$key]);
         }
 
-        $response->setCurlInfo($info);*/
+        $response->setCurlInfo($info);
 
         return $response;
     }
