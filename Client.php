@@ -239,11 +239,13 @@ class Client extends AbstractClient
 
         if (!empty($options)) {
             if (isset($options['cookie'])) {
-                $request->addCookie($options['cookie']);
+                $request->addCookie((string) $options['cookie']);
             }
 
             if (isset($options['headers'])) {
-                $request->setHeaders($options['headers']);
+                foreach ((array) $options['headers'] as $name => $value) {
+                    $request->addHeader($name, $value);
+                }
             }
 
             if (isset($options['body'])) {
