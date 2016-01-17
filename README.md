@@ -188,7 +188,7 @@ The registered listener function depends on event to listen for, receive argumen
 use App\EventListener\HttpListener;
 use ArturDoruch\Http\Event\BeforeEvent;
 use ArturDoruch\Http\Event\CompleteEvent;
-use ArturDoruch\Http\RequestEvents;
+use ArturDoruch\Http\Event\RequestEvents;
 
 // Add listener to BEFORE event as anonymous function.
 $client->addListener(RequestEvents::BEFORE, function (BeforeEvent $event) {

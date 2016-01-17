@@ -3,7 +3,7 @@
  * @author Artur Doruch <arturdoruch@interia.pl>
  */
 
-namespace ArturDoruch\Http;
+namespace ArturDoruch\Http\Event;
 
 /**
  * Contains events thrown while HTTP request is making.

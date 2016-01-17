@@ -9,7 +9,6 @@ use ArturDoruch\Http\Client;
 use ArturDoruch\Http\Event\Listener\HttpErrorListener;
 use ArturDoruch\Http\Message\Response;
 use ArturDoruch\Http\Request;
-use ArturDoruch\Http\RequestEvents;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class EventDispatcherHelper
