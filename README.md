@@ -3,14 +3,18 @@
 HTTP client for making http requests in enjoyable way.
 
 ## Installation
-Via composer. Add this lines into composer.json file.
+Via composer. Add this lines into composer.json file,
 ```json
 {
     "require": {
         ...
-        "arturdoruch/http": "~3.0"
+        "arturdoruch/http": "~3.5"
     }
 }
+```
+or just run command
+```
+composer require "arturdoruch/http"
 ```
 
 ## Usage
@@ -25,9 +29,16 @@ use ArturDoruch\Http\Client;
 $client = new Client();
 $response = $client->get('http://httpbin.org/get');
 
+// Gets response status code
 $statusCode = $response->getStatusCode();
+
+// Gets response body
 $body = $response->getBody();
 
+// Displays response raw headers and body
+echo $response;
+
+// Displays response headers
 foreach ($response->getHeaders() as $header => $value) {
     echo sprintf("%s: %s\n", $header, $value);
 }
@@ -58,7 +69,7 @@ $client = new Client($curlOptions, $throwExceptions, $cookieFile);
 
 ### Sending requests
 
-You can send requests with dedicated methods.
+You can send requests with dedicated methods,
 ```php
 $response = $client->get('http://httpbin.org/get');
 $response = $client->post('http://httpbin.org/post');
@@ -67,7 +78,7 @@ $response = $client->put('http://httpbin.org/put');
 $response = $client->delete('http://httpbin.org/delete');
 ```
 
-Or create Request object before, and pass it into request() method.  
+or create Request object, and pass it into request() method.  
 ```php
 use ArturDoruch\Http\Request;
 
@@ -78,9 +89,8 @@ $response = $client->request($request);
 ### Request options
 
 Request options allows to set request body, headers, cookie, which will be send with http request.
-Those options can be pass into ArturDoruch\Http\Client::get(), 
-ArturDoruch\Http\Client::post(), etc. methods as third argument,
-or into ArturDoruch\Http\Client::createRequest() as fourth argument.
+Those options can be passed into Client::get(), Client::post(), etc. methods as third argument,
+or into Client::createRequest() as fourth argument.
 
 <a name="#cookie"></a>
 ####<i>cookie</i>
@@ -130,6 +140,7 @@ $client->post('/post', [], ['body' => 'Raw data']);
 
 <b>type</b>: array
 
+Send json
 ```php
 $client->put('/put', [], [
     'json' => [
@@ -155,4 +166,78 @@ $client->post('/post', [], [
         new PostFile('foo', __DIR__ . '/foo.txt'),
     ]
 ]);
+```
+
+### Request events listeners
+
+While HTTP request is making, are called two events:
+
+ * BEFORE - event called just before send HTTP request
+ * COMPLETE - event called when HTTP request is done
+  
+To add listeners for those events use Client::addListener() method. 
+The listener can be anonymous function or class method.
+```php
+use ArturDoruch\Http\Event\BeforeEvent;
+use ArturDoruch\Http\Event\CompleteEvent;
+use ArturDoruch\Http\RequestEvents;
+
+// Add listener to BEFORE event.
+$client->addListener(RequestEvents::BEFORE, function (BeforeEvent $event) {
+        $request = $event->getRequest();
+    });
+    
+// Add listener to COMPLETE event.
+$client->addListener(RequestEvents::COMPLETE, function (CompleteEvent $event) {
+        $response = $event->getResponse();
+    });
+```
+
+### Convert Response object to array or json
+
+In order to convert Response object to array call Response::toArray() method.
+```php
+$responseArray = $response->toArray();
+```
+
+In order to convert Response object to json call Response::toJson() method.
+```php
+$responseJson = $response->toJson();
+// Use JSON_PRETTY_PRINT option to format output json
+$responseJson = $response->toJson(true);
+```
+
+To determine which Response object properties should be available
+in converted output value use Response::expose() method.
+This method takes an argument "properties" with list of properties names to expose.
+Available names are:
+
+ * protocol
+ * statusCode
+ * reasonPhrase
+ * headers
+ * headerLines
+ * body
+ * contentType
+ * requestUrl
+ * effectiveUrl
+ * errorMsg
+ * errorNumber
+ * curlInfo
+
+As default are exposed properties: statusCode, headers, body.
+ 
+```php
+// Expose only the "statusCode" and "body" properties.
+$response->expose(array(
+        'statusCode',
+        'body',
+    ));    
+// The array will contain only "statusCode" and "body" keys.    
+$responseArray = $response->toArray();
+    
+// Expose all properties.
+$response->exposeAll();    
+// The array will contain all of available properties.  
+$responseArray = $response->toArray();    
 ```
