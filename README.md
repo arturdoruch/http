@@ -3,16 +3,7 @@
 HTTP client for making http requests in enjoyable way.
 
 ## Installation
-Via composer. Add this lines into composer.json file,
-```json
-{
-    "require": {
-        ...
-        "arturdoruch/http": "~3.5"
-    }
-}
-```
-or just run command
+Via composer just run command
 ```
 composer require "arturdoruch/http"
 ```
