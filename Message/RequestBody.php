@@ -125,6 +125,7 @@ class RequestBody
     private function getMultiPartContent(PostFile $postFile)
     {
         $file = $postFile->getFile();
+
         if (!file_exists($file)) {
             throw new \RuntimeException(sprintf('The file "%s" which you try to send, is not exist.', $file));
         }
@@ -135,13 +136,25 @@ class RequestBody
         $body = array(
             sprintf('Content-Disposition: form-data; name="%s"; filename="%s"', $postFile->getName(), $filename),
             'Content-Length: ' . filesize($file),
-            'Content-Type: ' . mime_content_type($file),
+            'Content-Type: ' . $this->getMimeContentType($file),
             '',
             $fileContent,
             ''
         );
 
         return implode("\r\n", $body);
+    }
+
+    /**
+     * @param $filename
+     *
+     * @return string
+     */
+    private function getMimeContentType($filename)
+    {
+        $fileInfo = new \finfo();
+
+        return $fileInfo->file($filename, FILEINFO_MIME_TYPE);
     }
 
 }
