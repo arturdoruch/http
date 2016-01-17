@@ -86,6 +86,18 @@ $request = new Request('DELETE', 'http://httpbin.org/delete');
 $response = $client->request($request);
 ```
 
+#### Multi (parallel) requests
+```php
+$urls = array(
+    // The list of urls to requested
+);
+$responses = $client->multiRequest($urls);
+
+foreach ($responses as $response) {
+    var_dump($response->getBody());
+}
+```
+
 ### Request options
 
 Request options allows to set request body, headers, cookie, which will be send with http request.
@@ -168,29 +180,64 @@ $client->post('/post', [], [
 ]);
 ```
 
-### Request events listeners
+### Http Request events listeners
 
 While HTTP request is making, are called two events:
 
- * BEFORE - event called just before send HTTP request
- * COMPLETE - event called when HTTP request is done
+ * BEFORE - event called just before send HTTP request,
+ * COMPLETE - event called when HTTP request is done.
   
 To add listeners for those events use Client::addListener() method. 
-The listener can be anonymous function or class method.
+The registered listener function depends on event to listen for, receive argument:
+
+ * ArturDoruch\Http\Event\BeforeEvent - for BEFORE event,
+ * ArturDoruch\Http\Event\CompleteEvent - for COMPLETE event.
+
 ```php
+use App\EventListener\HttpListener;
 use ArturDoruch\Http\Event\BeforeEvent;
 use ArturDoruch\Http\Event\CompleteEvent;
 use ArturDoruch\Http\RequestEvents;
 
-// Add listener to BEFORE event.
+// Add listener to BEFORE event as anonymous function.
 $client->addListener(RequestEvents::BEFORE, function (BeforeEvent $event) {
         $request = $event->getRequest();
     });
     
-// Add listener to COMPLETE event.
-$client->addListener(RequestEvents::COMPLETE, function (CompleteEvent $event) {
+// Add listener to BEFORE event as method class.
+$client->addListener(RequestEvents::BEFORE, array(new HttpListener(), 'onBefore'));
+    
+// Add listener to COMPLETE event as method class.
+$client->addListener(RequestEvents::COMPLETE, array(new HttpListener(), 'onComplete'));
+```
+
+Example of HTTP events listener class.
+```php
+namespace App\EventListener;
+
+use ArturDoruch\Http\Event\BeforeEvent;
+use ArturDoruch\Http\Event\CompleteEvent;
+
+class HttpListener
+{
+    /**
+     * @param CompleteEvent $event Emitted event
+     */
+    public function onComplete(CompleteEvent $event)
+    {
         $response = $event->getResponse();
-    });
+        // Do some actions when HTTP request is complete.
+    }
+    
+    /**
+     * @param BeforeEvent $event Emitted event
+     */
+    public function onBefore(BeforeEvent $event)
+    {
+        $request = $event->getRequest();
+        // Do some actions before HTTP request is sending.
+    }
+}
 ```
 
 ### Convert Response object to array or json
@@ -235,7 +282,10 @@ $response->expose(array(
     ));    
 // The array will contain only "statusCode" and "body" keys.    
 $responseArray = $response->toArray();
-    
+```
+
+To expose all Response properties use exposeAll() method.
+```php    
 // Expose all properties.
 $response->exposeAll();    
 // The array will contain all of available properties.  
