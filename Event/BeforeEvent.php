@@ -25,7 +25,7 @@ class BeforeEvent extends Event
      * @param Request $request
      * @param Client $client
      */
-    public function setData(Request $request, Client $client)
+    public function __construct(Request $request, Client $client)
     {
         $this->request = $request;
         $this->client = $client;

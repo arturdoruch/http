@@ -38,7 +38,7 @@ class CompleteEvent extends Event
      * @param Client $client
      * @param bool $multiRequest
      */
-    public function setData(Request $request, $response, Client $client, $multiRequest)
+    public function __construct(Request $request, $response, Client $client, $multiRequest)
     {
         $this->request = $request;
         $this->response = $response;
