@@ -79,4 +79,13 @@ interface ResponseInterface
      */
     public function addHeader($name, $value);
 
+    /**
+     * Sets message headers.
+     *
+     * @param array $headers
+     *
+     * @return $this
+     */
+    public function setHeaders(array $headers);
+
 } 

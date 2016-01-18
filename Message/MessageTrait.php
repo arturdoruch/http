@@ -96,4 +96,20 @@ trait MessageTrait
         return $this;
     }
 
+    /**
+     * Sets message headers
+     *
+     * @param array $headers
+     *
+     * @return $this
+     */
+    public function setHeaders(array $headers)
+    {
+        foreach ($headers as $name => $value) {
+            $this->addHeader($name, $value);
+        }
+
+        return $this;
+    }
+
 }

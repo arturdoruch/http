@@ -243,9 +243,7 @@ class Client extends AbstractClient
             }
 
             if (isset($options['headers'])) {
-                foreach ((array) $options['headers'] as $name => $value) {
-                    $request->addHeader($name, $value);
-                }
+                $request->setHeaders($options['headers']);
             }
 
             if (isset($options['body'])) {
