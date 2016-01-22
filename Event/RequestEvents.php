@@ -7,6 +7,7 @@ namespace ArturDoruch\Http\Event;
 
 /**
  * Contains events thrown while HTTP request is making.
+ * @todo In version 4 move this class to ArturDoruch\Http namespace.
  */
 final class RequestEvents
 {

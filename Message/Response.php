@@ -288,37 +288,47 @@ class Response implements \JsonSerializable, ResponseInterface
      * Cleans Response body where content type is type of 'text/html'.
      *
      * @param MessageBodyCleanerInterface $cleaner Provides custom ways to clearing HTML.
-     * @param bool $removeHead  Removes <head> tag and leaves only <body> content.
+     * @param bool $removeHead  Removes <head> tag and leaves only <body> tag.
      * @param bool $removeNoise Removes comments and unwanted tags like:
      *                          script, noscript, iframe, meta, input.
      * @param bool $removeImages
-     * @param bool $removeWhiteSpaces
+     * @param bool $minify
      *
      * @return $this;
+     *
+     * @deprecated To be removed in 4.0. Use tool ArturDoruch\HtmlCleaner and class
+     * ArturDoruch\HttpResponseHtmlCleaner instead @link https://github.com/arturdoruch/HtmlCleaner
      */
-    public function cleanHtmlBody(MessageBodyCleanerInterface $cleaner = null, $removeHead = true, $removeNoise = true, $removeImages = true, $removeWhiteSpaces = true)
+    public function cleanHtmlBody(MessageBodyCleanerInterface $cleaner = null, $removeHead = true, $removeNoise = true, $removeImages = true, $minify = true)
     {
         if (strpos($this->getContentType(), 'text/html') === 0) {
             $body = $this->getBody();
 
-            HtmlUtils::removeBlankLines($body);
+            HtmlUtils::removeEmptyLines($body);
 
-            if ($removeWhiteSpaces === true) {
-                HtmlUtils::removeWhiteSpace($body);
-                $body = str_replace("\n", '', $body);
+            $elements = array();
+            if ($removeHead) {
+                $elements[] = 'head';
+            }
+            if ($removeNoise) {
+                $elements[] = 'script';
+                $elements[] = 'input_meta';
+            }
+            if ($removeImages) {
+                $elements[] = 'image';
             }
 
-            if ($removeNoise === true) {
-                HtmlUtils::removeNoise($body, $removeImages);
+            if (!empty($elements)) {
+                HtmlUtils::removeNoise($body, $elements, false);
+            }
+
+            if ($minify === true) {
+                HtmlUtils::minify($body);
             }
 
             if ($cleaner) {
                 $this->setBody($body);
                 $body = $cleaner->cleanHtml($this);
-            }
-
-            if ($removeHead === true && preg_match('/<\s*body[^>]*>(.*)<\/body>/si', $body, $matches)) {
-                $body = $matches[1];
             }
 
             $this->setBody($body);
