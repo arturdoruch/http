@@ -21,9 +21,11 @@ trait MessageTrait
     private $headers = array();
 
     /**
-     * @var array Actual key to list of values per header.
+     * HTTP header names collection with lowercase to original capitalization header name
+     *
+     * @var array
      */
-    private $headerLines = array();
+    private $headerNames = array();
 
     /**
      * @return string The http protocol
@@ -46,11 +48,13 @@ trait MessageTrait
     }
 
     /**
-     * @return array
+     * Returns the headers, with original capitalization's.
+     *
+     * @return array An array of headers
      */
     public function getHeaders()
     {
-        return $this->headerLines;
+        return array_combine($this->headerNames, $this->headers);
     }
 
     /**
@@ -82,15 +86,17 @@ trait MessageTrait
     /**
      * @param string $name Header field name.
      * @param string $value
+     *
      * @return $this
      */
     public function addHeader($name, $value)
     {
         if (is_string($name) && is_scalar($value)) {
             $name = trim($name);
-            $value = trim($value);
-            $this->headers[strtolower($name)] = $value;
-            $this->headerLines[$name] = $value;
+            $lowercaseName = strtolower($name);
+
+            $this->headers[$lowercaseName] = trim($value);
+            $this->headerNames[$lowercaseName] = $name;
         }
 
         return $this;
