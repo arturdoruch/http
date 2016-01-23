@@ -8,7 +8,7 @@ namespace ArturDoruch\Http\Response;
 use ArturDoruch\Http\Message\MessageBodyCleanerInterface;
 
 /**
- * @deprecated Will be removed in version 4. Use instead ArturDoruch\Http\Message\MessageBodyCleanerInterface.
+ * @deprecated Will be removed in version 4.
  */
 interface ResponseBodyInterface extends MessageBodyCleanerInterface
 {

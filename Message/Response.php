@@ -235,9 +235,8 @@ class Response implements \JsonSerializable, ResponseInterface
     public function getRawHeaders()
     {
         $rawHeaders = $this->getProtocol() . ' ' . $this->statusCode . ' ' . $this->reasonPhrase . "\r\n";
-        $headers = $this->getHeaders();
 
-        foreach ($headers as $name => $value) {
+        foreach ($this->getHeaders() as $name => $value) {
             $rawHeaders .= $name . ": " . $value . "\r\n";
         }
 

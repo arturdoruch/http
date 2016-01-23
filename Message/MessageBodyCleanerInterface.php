@@ -7,6 +7,8 @@ namespace ArturDoruch\Http\Message;
 
 /**
  * Provides a custom way to clearing response body.
+ *
+ * @deprecated Will be removed in version 4.
  */
 interface MessageBodyCleanerInterface
 {
