@@ -57,13 +57,17 @@ class Options
     {
         $request = $handler->getRequest();
 
-        $options = $this->validate($options) + $this->defaultOptions;
+        $options = $this->parseOptions($options) + $this->defaultOptions;
         $options[CURLOPT_URL] = $url = $request->getUrl();
         $options[CURLOPT_HEADER] = false;
-        //$options[CURLOPT_HTTPHEADER][] = 'Host: ' . parse_url($request->getUrl(), PHP_URL_HOST);
 
-        foreach ($request->getHeaders() as $header => $value) {
-            $options[CURLOPT_HTTPHEADER][] = $header . ': ' . $value;
+        // Set headers
+        $headers = $request->getHeaders() + array(
+                'User-Agent' => 'Client http'
+            );
+
+        foreach ($headers as $name => $value) {
+            $options[CURLOPT_HTTPHEADER][] = $name . ': ' . $value;
         }
 
         $options[CURLOPT_HEADERFUNCTION] = function ($ch, $header) use ($handler) {
@@ -130,15 +134,10 @@ class Options
             CURLOPT_TIMEOUT => 200,
             CURLOPT_CONNECTTIMEOUT => 180,
             CURLOPT_ENCODING => '',
-            CURLOPT_HTTPHEADER => array(
-                'Accept-Encoding: ',
-                'User-Agent: Client http'
-            ),
-            // CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
             // CURLOPT_FILE => fopen('php://temp', 'w+'),
         );
 
-        $this->defaultOptions = $this->validate($options) + $defaultOptions;
+        $this->defaultOptions = $this->parseOptions($options) + $defaultOptions;
     }
 
     /**
@@ -159,7 +158,10 @@ class Options
      */
     public function getOptions($keyAsConstantName = false)
     {
-        return $this->collectOptions($this->options, $keyAsConstantName);
+        $options = $this->options;
+        unset($options[CURLOPT_HEADERFUNCTION]);
+
+        return $this->collectOptions($options, $keyAsConstantName);
     }
 
     /**
@@ -181,10 +183,14 @@ class Options
         return $curlOptions;
     }
 
-
-    private function validate(array $options)
+    /**
+     * @param array $options User curl options
+     *
+     * @return array
+     */
+    private function parseOptions(array $options)
     {
-        $validOptions = array();
+        $properOptions = array();
         foreach ($options as $option => $value) {
             $opt = $option;
             if (strpos($option, 'CURLOPT_') !== false || strpos($option, 'CURLINFO_') !== false) {
@@ -193,15 +199,16 @@ class Options
                 $option = @constant('CURLOPT_' . strtoupper($option));
             }
 
-            if (isset($this->curlOptConstantsHash[$option])) {
-                $validOptions[$option] = $value;
-            } else {
+            if (!isset($this->curlOptConstantsHash[$option])) {
                 throw new \InvalidArgumentException('Couldn\'t find cURL constant '. $opt);
             }
+
+            $properOptions[$option] = $value;
         }
 
-        return $validOptions;
+        return $properOptions;
     }
+
 
     private function setCurlOptConstants()
     {
