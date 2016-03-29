@@ -62,11 +62,7 @@ class Options
         $options[CURLOPT_HEADER] = false;
 
         // Set headers
-        $headers = $request->getHeaders() + array(
-                'User-Agent' => 'Client http'
-            );
-
-        foreach ($headers as $name => $value) {
+        foreach ($request->getHeaders() as $name => $value) {
             $options[CURLOPT_HTTPHEADER][] = $name . ': ' . $value;
         }
 
@@ -134,6 +130,7 @@ class Options
             CURLOPT_TIMEOUT => 200,
             CURLOPT_CONNECTTIMEOUT => 180,
             CURLOPT_ENCODING => '',
+            //CURLOPT_USERAGENT => 'Client http'
             // CURLOPT_FILE => fopen('php://temp', 'w+'),
         );
 
