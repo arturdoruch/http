@@ -282,3 +282,16 @@ $response->exposeAll();
 // The array will contain all of available properties.  
 $responseArray = $response->toArray();    
 ```
+
+## Tips
+
+* Get request headers
+```php
+$client = new Client([CURLINFO_HEADER_OUT => true]);
+    
+$response = $client->get('http://httpbin.org/get');
+$curlInfo = $response->getCurlInfo()
+
+$requestHeaders = $curlInfo['request_header'];
+```
+ 
