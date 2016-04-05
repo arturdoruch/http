@@ -1,13 +1,13 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http\Message;
 
 use ArturDoruch\Http\Redirect;
 use ArturDoruch\Http\Util\HtmlUtils;
 
+/**
+ * @author Artur Doruch <arturdoruch@interia.pl>
+ */
 class Response implements \JsonSerializable, ResponseInterface
 {
     use ResponseTrait;
@@ -413,6 +413,5 @@ class Response implements \JsonSerializable, ResponseInterface
 
         return $data;
     }
-
 }
  

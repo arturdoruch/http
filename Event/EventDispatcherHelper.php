@@ -1,16 +1,16 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http\Event;
 
 use ArturDoruch\Http\Client;
-use ArturDoruch\Http\Event\Listener\HttpErrorListener;
+use ArturDoruch\Http\EventListener\HttpErrorListener;
 use ArturDoruch\Http\Message\Response;
 use ArturDoruch\Http\Request;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
+/**
+ * @author Artur Doruch <arturdoruch@interia.pl>
+ */
 class EventDispatcherHelper
 {
     /**
@@ -64,6 +64,5 @@ class EventDispatcherHelper
         $event = new CompleteEvent($request, $response, $client, $multiRequest);
         $this->dispatcher->dispatch(RequestEvents::COMPLETE, $event);
     }
-
 }
  

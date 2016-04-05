@@ -1,15 +1,14 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
-namespace ArturDoruch\Http\Event\Listener;
+namespace ArturDoruch\Http\EventListener;
 
 use ArturDoruch\Http\Event\CompleteEvent;
 use ArturDoruch\Http\Exception\RequestException;
 
 /**
  * Throws exceptions when response status code is 4xx, 5xx or 0
+ *
+ * @author Artur Doruch <arturdoruch@interia.pl>
  */
 class HttpErrorListener
 {

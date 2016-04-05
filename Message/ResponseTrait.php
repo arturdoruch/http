@@ -1,12 +1,11 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http\Message;
 
 /**
  * Representation of an outgoing, server-side response.
+ *
+ * @author Artur Doruch <arturdoruch@interia.pl>
  */
 trait ResponseTrait
 {
@@ -63,6 +62,5 @@ trait ResponseTrait
 
         return $this;
     }
-
 }
  

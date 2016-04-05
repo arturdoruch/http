@@ -1,11 +1,10 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http\Util;
 
-
+/**
+ * @author Artur Doruch <arturdoruch@interia.pl>
+ */
 class ResponseUtils
 {
     /**
@@ -83,6 +82,5 @@ class ResponseUtils
     {
         return isset(static::$statusTexts[$statusCode]) ? static::$statusTexts[$statusCode] : null;
     }
-
 }
  

@@ -1,13 +1,13 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http;
 
 use ArturDoruch\Http\Message\MessageTrait;
 use ArturDoruch\Http\Message\RequestBody;
 
+/**
+ * @author Artur Doruch <arturdoruch@interia.pl>
+ */
 class Request
 {
     use MessageTrait;
@@ -203,6 +203,5 @@ class Request
             $this->addHeader('Content-Type', $contentType);
         }
     }
-
 }
  

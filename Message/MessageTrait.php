@@ -1,12 +1,11 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http\Message;
 
 /**
  * Trait implementing functionality common to requests and responses.
+ *
+ * @author Artur Doruch <arturdoruch@interia.pl>
  */
 trait MessageTrait
 {
@@ -117,5 +116,4 @@ trait MessageTrait
 
         return $this;
     }
-
 }

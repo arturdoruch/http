@@ -1,12 +1,12 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http\Message;
 
 use ArturDoruch\Http\Post\PostFile;
 
+/**
+ * @author Artur Doruch <arturdoruch@interia.pl>
+ */
 class RequestBody
 {
     /**
@@ -156,6 +156,5 @@ class RequestBody
 
         return $fileInfo->file($filename, FILEINFO_MIME_TYPE);
     }
-
 }
  

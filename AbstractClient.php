@@ -1,7 +1,4 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http;
 
@@ -9,6 +6,9 @@ use ArturDoruch\Http\Event\EventDispatcherHelper;
 use ArturDoruch\Http\Message\Response;
 use ArturDoruch\Http\Message\ResponseCollection;
 
+/**
+ * @author Artur Doruch <arturdoruch@interia.pl>
+ */
 abstract class AbstractClient
 {
     /**
@@ -198,6 +198,5 @@ abstract class AbstractClient
 
         return isset($this->trackingUrls[$resourceId]) ? $this->trackingUrls[$resourceId] : null;
     }
-
 }
  

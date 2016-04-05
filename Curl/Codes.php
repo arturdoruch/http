@@ -1,10 +1,10 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http\Curl;
 
+/**
+ * @author Artur Doruch <arturdoruch@interia.pl>
+ */
 class Codes
 {
     /**

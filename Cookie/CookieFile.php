@@ -1,12 +1,11 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http\Cookie;
 
 /**
  * Class for managing session cookie file.
+ *
+ * @author Artur Doruch <arturdoruch@interia.pl>
  */
 class CookieFile
 {
@@ -52,6 +51,5 @@ class CookieFile
     {
         return $this->filename;
     }
-
 }
  

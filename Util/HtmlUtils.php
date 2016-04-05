@@ -1,10 +1,12 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http\Util;
 
+/**
+ * @deprecated Will be removed in version 4. Use HtmlCleaner instead https://github.com/arturdoruch/HtmlCleaner
+ *
+ * @author Artur Doruch <arturdoruch@interia.pl>
+ */
 class HtmlUtils
 {
     /**
@@ -125,5 +127,4 @@ class HtmlUtils
     {
         $text = trim(preg_replace("/([\t ]*(\r?\n|\r))+/i", "\n", $text));
     }
-
 }

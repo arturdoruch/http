@@ -1,11 +1,10 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http\Message;
 
-
+/**
+ * @author Artur Doruch <arturdoruch@interia.pl>
+ */
 interface ResponseInterface
 {
     /**
@@ -87,5 +86,4 @@ interface ResponseInterface
      * @return $this
      */
     public function setHeaders(array $headers);
-
 } 

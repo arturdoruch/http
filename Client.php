@@ -1,7 +1,4 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http;
 
@@ -9,6 +6,9 @@ use ArturDoruch\Http\Cookie\CookieFile;
 use ArturDoruch\Http\Curl\Options;
 use ArturDoruch\Http\Message\Response;
 
+/**
+ * @author Artur Doruch <arturdoruch@interia.pl>
+ */
 class Client extends AbstractClient
 {
     /**
@@ -315,5 +315,4 @@ class Client extends AbstractClient
                 ));
         }
     }
-
 }

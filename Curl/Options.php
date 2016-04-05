@@ -1,13 +1,13 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http\Curl;
 
 use ArturDoruch\Http\Cookie\CookieFile;
 use ArturDoruch\Http\RequestHandler;
 
+/**
+ * @author Artur Doruch <arturdoruch@interia.pl>
+ */
 class Options
 {
     /**
@@ -130,7 +130,7 @@ class Options
             CURLOPT_TIMEOUT => 200,
             CURLOPT_CONNECTTIMEOUT => 180,
             CURLOPT_ENCODING => '',
-            //CURLOPT_USERAGENT => 'Client http'
+            CURLOPT_USERAGENT => 'Client http'
             // CURLOPT_FILE => fopen('php://temp', 'w+'),
         );
 
@@ -221,6 +221,5 @@ class Options
             $this->curlOptConstantsHash = array_flip($this->curlOptConstants);
         }
     }
-
 }
  

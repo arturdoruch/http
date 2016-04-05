@@ -1,7 +1,4 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http;
 
@@ -11,6 +8,8 @@ use ArturDoruch\Http\Message\ResponseTrait;
 
 /**
  * Http request redirect
+ *
+ * @author Artur Doruch <arturdoruch@interia.pl>
  */
 class Redirect implements ResponseInterface
 {

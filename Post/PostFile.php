@@ -1,10 +1,10 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http\Post;
 
+/**
+ * @author Artur Doruch <arturdoruch@interia.pl>
+ */
 class PostFile
 {
     /**
@@ -57,6 +57,5 @@ class PostFile
     {
         return $this->filename;
     }
-
 }
  

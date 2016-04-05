@@ -1,7 +1,4 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http\Exception;
 
@@ -11,6 +8,8 @@ use ArturDoruch\Http\Request;
 
 /**
  * HTTP Request exception
+ *
+ * @author Artur Doruch <arturdoruch@interia.pl>
  */
 class RequestException extends \RuntimeException
 {
@@ -130,13 +129,12 @@ class RequestException extends \RuntimeException
      */
     private static function createConnect(Response $response, \Exception $previous = null, Request $request = null)
     {
-        $className = __NAMESPACE__ . '\\ConnectException';
         $message = sprintf(
             'Connection error [url] %s [error number] %d [error message] %s',
             $response->getRequestUrl(), $response->getErrorNumber(), $response->getErrorMsg()
         );
 
-        return new $className($message, $response, $previous, $request);
+        return new ConnectException($message, $response, $previous, $request);
     }
 
     /**

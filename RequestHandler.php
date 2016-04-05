@@ -1,7 +1,4 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http;
 
@@ -9,6 +6,9 @@ use ArturDoruch\Http\Message\Response;
 use ArturDoruch\Http\Message\ResponseInterface;
 use ArturDoruch\Http\Util\ResponseUtils;
 
+/**
+ * @author Artur Doruch <arturdoruch@interia.pl>
+ */
 class RequestHandler
 {
     /**
@@ -188,6 +188,5 @@ class RequestHandler
             );
         }
     }
-
 }
  

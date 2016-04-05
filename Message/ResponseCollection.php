@@ -1,10 +1,10 @@
 <?php
-/**
- * @author Artur Doruch <arturdoruch@interia.pl>
- */
 
 namespace ArturDoruch\Http\Message;
 
+/**
+ * @author Artur Doruch <arturdoruch@interia.pl>
+ */
 class ResponseCollection
 {
     /**
@@ -35,6 +35,5 @@ class ResponseCollection
 
         return $this->responses;
     }
-
 }
  
