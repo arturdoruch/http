@@ -138,14 +138,10 @@ class RequestHandler
             $headersSet = explode("\n\n", trim($this->headers[$resourceId]));
 
             $this->parseResponseHeaders($response, array_pop($headersSet));
-            $response
-                ->setStatusCode($info['http_code'])
-                ->setReasonPhrase($reasonPhrase);
 
             // Set redirects
             foreach ($headersSet as $headers) {
-                $redirect = new Redirect();
-                $this->parseResponseHeaders($redirect, $headers);
+                $this->parseResponseHeaders($redirect = new Redirect(), $headers);
 
                 $response->addRedirect($redirect);
             }
@@ -173,19 +169,19 @@ class RequestHandler
         $statusLine = array_shift($headerLines);
 
         // Parse header status line
-        list($protocol, $statusCode, $reasonPhrase) = explode(' ', $statusLine);
-        $response
-            ->setProtocol($protocol)
-            ->setStatusCode($statusCode)
-            ->setReasonPhrase($reasonPhrase);
+        $parts = explode(' ', $statusLine, 3);
+        $response->setProtocol($parts[0]);
+
+        if ($response instanceof Redirect) {
+            $response
+                ->setStatusCode($parts[1])
+                ->setReasonPhrase(isset($parts[2]) ? $parts[2] : ResponseUtils::getReasonPhrase($parts[1]));
+        }
 
         // Set headers
         foreach ($headerLines as $headerLine) {
             $parts = explode(': ', $headerLine);
-            $response->addHeader(
-                $parts[0],
-                (isset($parts[1]) ? $parts[1] : null)
-            );
+            $response->addHeader($parts[0], (isset($parts[1]) ? $parts[1] : null));
         }
     }
 }

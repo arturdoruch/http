@@ -38,7 +38,7 @@ trait ResponseTrait
      */
     public function setStatusCode($statusCode)
     {
-        $this->statusCode = $statusCode;
+        $this->statusCode = (int)$statusCode;
 
         return $this;
     }
