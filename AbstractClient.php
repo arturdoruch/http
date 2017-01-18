@@ -14,7 +14,7 @@ abstract class AbstractClient
     /**
      * @var int Number of multi connections.
      */
-    protected $connections = 8;
+    private $connections = 8;
 
     /**
      * @var int Urls array index.
@@ -53,6 +53,14 @@ abstract class AbstractClient
     }
 
     /**
+     * @param int $connections Number of parallel connections.
+     */
+    public function setConnections($connections)
+    {
+        $this->connections = $connections;
+    }
+
+    /**
      * @param RequestHandler $handler
      *
      * @return Response[]
@@ -76,53 +84,49 @@ abstract class AbstractClient
     /**
      * @param array $urls
      * @param RequestHandler $handler
+     * @param callable       $rejectUrl
      *
      * @return Response[]
      */
-    protected function sendMultiRequest(array $urls, RequestHandler $handler)
+    protected function sendMultiRequest(array $urls, RequestHandler $handler, callable $rejectUrl = null)
     {
         $this->responseCollection = new ResponseCollection();
         $this->index = 0;
         $this->requestUrls = array_values($urls);
+        $rejectUrl = $rejectUrl ?: function () {};
+        $connections = ($maxConnection = count($urls)) < $this->connections ? $maxConnection : $this->connections;
 
         $mh = curl_multi_init();
-        $multiExec = function () use ($mh, &$mrc, &$active) {
-            do {
-                $mrc = curl_multi_exec($mh, $active);
-            } while ($mrc == CURLM_CALL_MULTI_PERFORM);
-        };
-
-        // Add multiple URLs to the multi handle
-        for ($i = 0; $i < $this->connections; $i++) {
-            $this->addUrlToMultiHandle($mh, $handler);
+        // Add initial urls to the multi handle
+        for ($i = 0; $i < $connections; $i++) {
+            $this->addUrlToHandle($mh, $handler, $rejectUrl);
         }
 
         // Initial execution
-        $multiExec();
+        while (CURLM_CALL_MULTI_PERFORM === $mrc = curl_multi_exec($mh, $active));
 
         while ($active && $mrc == CURLM_OK) {
-            // There is activity
-            if (curl_multi_select($mh) == -1) {
+            // Handle PHP Bug, see: https://bugs.php.net/bug.php?id=61141
+            if (curl_multi_select($mh) === -1) {
                 usleep(250);
             }
-            // Do work
-            $multiExec();
 
-            if ($mhInfo = curl_multi_info_read($mh)) {
-                // One of the requests were finished
+            // Execute
+            while (CURLM_CALL_MULTI_PERFORM === $mrc = curl_multi_exec($mh, $active));
+
+            while ($mhInfo = curl_multi_info_read($mh)) {
+                // One of the requests wes finished
                 $ch = $mhInfo['handle'];
 
                 $handler->getRequest()->setUrl($this->getTrackingUrl($ch));
                 $this->handleResource($handler, $ch, true);
 
                 curl_multi_remove_handle($mh, $ch);
-                //curl_close($h);
-
-                // Add a new url and do work
-                if ($this->addUrlToMultiHandle($mh, $handler)) {
-                    $multiExec();
-                }
+                curl_close($ch);
             }
+
+            // Add a new url
+            $this->addUrlToHandle($mh, $handler, $rejectUrl);
         }
 
         curl_multi_close($mh);
@@ -131,34 +135,39 @@ abstract class AbstractClient
     }
 
     /**
-     * Adds a url to the multi handle
+     * Adds a url to the multi handle.
      *
-     * @param resource $mh Multi handle
+     * @param resource       $mh Multi handle
      * @param RequestHandler $handler
-     * @internal param array $options
-     * @return bool
+     * @param callable       $rejectUrl
      */
-    private function addUrlToMultiHandle($mh, RequestHandler $handler)
+    private function addUrlToHandle($mh, RequestHandler $handler, callable $rejectUrl)
     {
-        $options = $handler->getOptions();
         if (!isset($this->requestUrls[$this->index])) {
-            return false;
+            return;
+        }
+
+        $url = trim($this->requestUrls[$this->index]);
+
+        if ($rejectUrl($url) === true) {
+            unset($this->requestUrls[$this->index]);
+            $this->index++;
+
+            return;
         }
 
         $ch = curl_init();
-        $options[CURLOPT_URL] = $url = trim($this->requestUrls[$this->index]);
-
         $this->setTrackingUrl($ch, $url);
 
+        $options = $handler->getOptions();
+        $options[CURLOPT_URL] = $url;
+
         curl_setopt_array($ch, $options);
-        // Add it to the multi handle
         curl_multi_add_handle($mh, $ch);
         // Increment so next url is used next time
         $this->index++;
 
         $this->dispatcherHelper->requestBefore($handler->getRequest()->setUrl($url), $this);
-
-        return true;
     }
 
     /**
@@ -175,7 +184,7 @@ abstract class AbstractClient
         // Dispatch event
         $this->dispatcherHelper->requestComplete($handler->getRequest(), $response, $this, $multiRequest);
         // Add response to collection
-        $this->responseCollection->add($response, (int) $ch);
+        $this->responseCollection->add($response, (int)$ch);
     }
 
     /**
@@ -184,7 +193,7 @@ abstract class AbstractClient
      */
     private function setTrackingUrl($ch, $url)
     {
-        $this->trackingUrls[(int) $ch] = $url;
+        $this->trackingUrls[(int)$ch] = $url;
     }
 
     /**
@@ -194,9 +203,8 @@ abstract class AbstractClient
      */
     private function getTrackingUrl($ch)
     {
-        $resourceId = (int) $ch;
+        $resourceId = (int)$ch;
 
         return isset($this->trackingUrls[$resourceId]) ? $this->trackingUrls[$resourceId] : null;
     }
 }
- 

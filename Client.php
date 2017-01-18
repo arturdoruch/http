@@ -54,14 +54,6 @@ class Client extends AbstractClient
     }
 
     /**
-     * @param int $connections Number of parallel connections.
-     */
-    public function setConnections($connections)
-    {
-        $this->connections = $connections;
-    }
-
-    /**
      * @deprecated
      * @param string $filename  Path to file where session cookies will be stored.
      */
@@ -277,14 +269,16 @@ class Client extends AbstractClient
     /**
      * Makes multi parallel requests.
      *
-     * @param array   $urls Collection of urls
-     * @param Request $request
-     * @param array   $curlOptions
-     * @param int     $connections Number of maximum parallel connections
+     * @param array    $urls        Collection of urls
+     * @param Request  $request
+     * @param array    $curlOptions
+     * @param int      $connections Number of parallel connections
+     * @param callable $rejectUrl   The listener allowing to reject added request url. Received
+     *                              one argument $url and must return true if url should be rejected.
      *
      * @return Response[]
      */
-    public function multiRequest(array $urls, Request $request = null, array $curlOptions = array(), $connections = null)
+    public function multiRequest(array $urls, Request $request = null, array $curlOptions = array(), $connections = null, callable $rejectUrl = null)
     {
         if ($connections) {
             $this->setConnections($connections);
@@ -297,7 +291,7 @@ class Client extends AbstractClient
         $handler = new RequestHandler($request);
         $this->options->prepareOptions($handler, $curlOptions);
 
-        return $this->sendMultiRequest($urls, $handler);
+        return $this->sendMultiRequest($urls, $handler, $rejectUrl);
     }
 
     /**
