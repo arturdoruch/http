@@ -71,19 +71,16 @@ class MessageHandler
     public function createResponse($handler)
     {
         $info = curl_getinfo($handler);
-        $reasonPhrase = ResponseUtils::getReasonPhrase($info['http_code']);
 
         $response = new Response();
         $response
-            ->setStatusCode($info['http_code'])
-            ->setReasonPhrase($reasonPhrase)
-            ->setRequestUrl($this->request->getUrl())
+            ->setRequest($this->request)
             ->setEffectiveUrl($info['url'])
             ->setContentType($info['content_type'])
             ->setErrorMsg(curl_error($handler))
-            ->setErrorNumber(isset($handler['result']) ? $handler['result'] : curl_errno($handler));
+            ->setErrorNumber(isset($handler['result']) ? $handler['result'] : curl_errno($handler))
+            ->setBody($this->stream->getContents());
 
-        $response->setBody($this->stream->getContents());
         $this->stream->close();
 
         $headersStock = $this->headersBag->getHeadersStock();
@@ -95,6 +92,10 @@ class MessageHandler
                 self::parseResponseHeaders($redirect = new Redirect(), $headers);
                 $response->addRedirect($redirect);
             }
+        } else {
+            $response
+                ->setStatusCode($info['http_code'])
+                ->setReasonPhrase(ResponseUtils::getReasonPhrase($info['http_code']));
         }
 
         self::compileCurlInfo($info);
@@ -113,13 +114,11 @@ class MessageHandler
     {
         // Parse header status line
         $parts = explode(' ', array_shift($headers), 3);
-        $response->setProtocol($parts[0]);
 
-        if ($response instanceof Redirect) {
-            $response
-                ->setStatusCode($parts[1])
-                ->setReasonPhrase(isset($parts[2]) ? $parts[2] : ResponseUtils::getReasonPhrase($parts[1]));
-        }
+        $response
+            ->setProtocol($parts[0])
+            ->setStatusCode($parts[1])
+            ->setReasonPhrase(isset($parts[2]) ? $parts[2] : ResponseUtils::getReasonPhrase($parts[1]));
 
         // Set headers
         foreach ($headers as $header) {
