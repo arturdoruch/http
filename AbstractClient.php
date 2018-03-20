@@ -117,7 +117,7 @@ abstract class AbstractClient
             while ($mhInfo = curl_multi_info_read($mh)) {
                 // One of the requests has been finished.
                 $handel = $mhInfo['handle'];
-                $this->handleResponse($handel, $this->getMessageHandler($handel));
+                $this->handleResponse($handel, $this->getMessageHandler($handel), true);
 
                 curl_multi_remove_handle($mh, $handel);
                 curl_close($handel);
