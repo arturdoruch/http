@@ -3,6 +3,7 @@
 namespace ArturDoruch\Http;
 
 use ArturDoruch\Http\Cookie\CookieFile;
+use ArturDoruch\Http\Curl\MessageHandlerFactory;
 use ArturDoruch\Http\Curl\Options;
 use ArturDoruch\Http\Message\Response;
 
@@ -32,6 +33,11 @@ class Client extends AbstractClient
     private $lastResponse;
 
     /**
+     * @var MessageHandlerFactory
+     */
+    private $messageHandlerFactory;
+
+    /**
      * @param array $curlOptions     cURL options as array with key, value pairs, where
      *                               key is cURL option. Key can be in three different formats:
      *                                - full constant name or,
@@ -46,9 +52,9 @@ class Client extends AbstractClient
     public function __construct(array $curlOptions = array(), $throwException = true, CookieFile $cookieFile = null)
     {
         $this->cookieFile = $cookieFile;
-        $this->options = new Options($cookieFile);
-        $this->options->setDefaultOptions($curlOptions);
-        $this->request = new Request();
+        $this->options = new Options($cookieFile, $curlOptions);
+        $this->request = new Request('GET', '-');
+        $this->messageHandlerFactory = new MessageHandlerFactory($this->options);
 
         parent::__construct($throwException);
     }
@@ -75,14 +81,17 @@ class Client extends AbstractClient
     }
 
     /**
+     * @todo Rename method to getCurlOptions()
+     *
      * Gets default cURL options.
      *
-     * @param bool $keyAsConstantName
+     * @param bool $keysAsConstants
+     *
      * @return array
      */
-    public function getDefaultCurlOptions($keyAsConstantName = false)
+    public function getDefaultCurlOptions($keysAsConstants = false)
     {
-        return $this->options->getDefaultOptions($keyAsConstantName);
+        return $this->options->getDefault($keysAsConstants);
     }
 
     /**
@@ -92,18 +101,21 @@ class Client extends AbstractClient
      */
     public function setDefaultCurlOptions(array $options)
     {
-        $this->options->setDefaultOptions($options);
+        $this->options->setDefault($options);
     }
 
     /**
-     * Gets current cURL options used with the last request.
+     * @todo Rename method to getLastCurlOptions()
      *
-     * @param bool $keyAsConstantName
+     * Gets cURL options used to send the last request.
+     *
+     * @param bool $keysAsConstants
+     *
      * @return array
      */
-    public function getCurlOptions($keyAsConstantName = false)
+    public function getCurlOptions($keysAsConstants = false)
     {
-        return $this->options->getOptions($keyAsConstantName);
+        return $this->options->getLast($keysAsConstants);
     }
 
     /**
@@ -207,11 +219,55 @@ class Client extends AbstractClient
     }
 
     /**
+     * @param Request $request
+     * @param array   $curlOptions
+     *
+     * @return Response
+     */
+    public function request(Request $request, array $curlOptions = array())
+    {
+        $messageHandler = $this->messageHandlerFactory->create($request, $curlOptions);
+
+        return $this->lastResponse = $this->sendRequest($messageHandler);
+    }
+
+    /**
+     * Makes multi parallel requests.
+     *
+     * @param Request[]|array $requests The list of Requests or urls.
+     * @param Request  $request @deprecated This parameter is not used any more.
+     * @param array    $curlOptions
+     * @param int      $connections Number of parallel connections
+     * @param callable $rejectUrl   The listener allowing to reject added request url. Received
+     *                              one argument $url and must return true if url should be rejected.
+     *
+     * @return Response[]
+     */
+    public function multiRequest(array $requests, Request $request = null, array $curlOptions = array(), $connections = null, callable $rejectUrl = null)
+    {
+        if ($connections) {
+            $this->setConnections($connections);
+        }
+
+        $messageHandlers = [];
+
+        foreach ($requests as $request) {
+            if (!$request instanceof Request) {
+                $request = $this->createRequest($request);
+            }
+
+            $messageHandlers[] = $this->messageHandlerFactory->create($request, $curlOptions);
+        }
+
+        return $this->sendMultiRequest($messageHandlers, $rejectUrl);
+    }
+
+    /**
      * Creates an Request object.
      *
      * @param string $url
      * @param string $method
-     * @param array $parameters Request parameters
+     * @param array $parameters Form parameters
      * @param array $options
      *  - cookie
      *  - headers
@@ -221,7 +277,7 @@ class Client extends AbstractClient
      *
      * @return Request
      */
-    public function createRequest($url = null, $method = 'GET', array $parameters = array(), array $options = null)
+    public function createRequest($url, $method = 'GET', array $parameters = array(), array $options = null)
     {
         $request = clone $this->request;
         $request
@@ -246,67 +302,5 @@ class Client extends AbstractClient
         }
 
         return $request;
-    }
-
-    /**
-     * @param Request $request
-     * @param array   $curlOptions
-     *
-     * @return Response
-     */
-    public function request(Request $request, array $curlOptions = array())
-    {
-        $this->validateUrl($request->getUrl());
-
-        $handler = new RequestHandler($request);
-        $this->options->prepareOptions($handler, $curlOptions);
-
-        $responses = $this->sendRequest($handler);
-
-        return $this->lastResponse = $responses[0];
-    }
-
-    /**
-     * Makes multi parallel requests.
-     *
-     * @param array    $urls        Collection of urls
-     * @param Request  $request
-     * @param array    $curlOptions
-     * @param int      $connections Number of parallel connections
-     * @param callable $rejectUrl   The listener allowing to reject added request url. Received
-     *                              one argument $url and must return true if url should be rejected.
-     *
-     * @return Response[]
-     */
-    public function multiRequest(array $urls, Request $request = null, array $curlOptions = array(), $connections = null, callable $rejectUrl = null)
-    {
-        if ($connections) {
-            $this->setConnections($connections);
-        }
-
-        if (!$request) {
-            $request = $this->createRequest(null, 'GET');
-        }
-
-        $handler = new RequestHandler($request);
-        $this->options->prepareOptions($handler, $curlOptions);
-
-        return $this->sendMultiRequest($urls, $handler, $rejectUrl);
-    }
-
-    /**
-     * @param string $url
-     */
-    private function validateUrl($url)
-    {
-        if (empty($url)) {
-            throw new \InvalidArgumentException('The request url cannot be empty.');
-        }
-
-        if (!is_string($url)) {
-            throw new \InvalidArgumentException(sprintf(
-                    'The request url must be type of string, but got "%s".', gettype($url)
-                ));
-        }
     }
 }

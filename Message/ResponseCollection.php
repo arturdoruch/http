@@ -10,7 +10,7 @@ class ResponseCollection
     /**
      * @var Response[]
      */
-    private $responses = array();
+    private $responses = [];
 
     /**
      * Adds a new Response into collection.

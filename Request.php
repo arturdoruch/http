@@ -25,7 +25,7 @@ class Request
     /**
      * @var array Form or url query parameters
      */
-    private $parameters = array();
+    private $parameters = [];
 
     /**
      * @var string|array
@@ -35,14 +35,14 @@ class Request
     /**
      * @var array
      */
-    private $cookies = array();
+    private $cookies = [];
 
     /**
      * @var RequestBody
      */
     private $requestBody;
 
-    public function __construct($method = 'GET', $url = null)
+    public function __construct($method = 'GET', $url)
     {
         $this->setMethod($method);
         $this->setUrl($url);
@@ -68,6 +68,7 @@ class Request
      */
     public function setUrl($url)
     {
+        self::validateUrl($url);
         $this->url = $url;
 
         return $this;
@@ -139,7 +140,7 @@ class Request
      */
     public function clearParameters()
     {
-        $this->parameters = array();
+        $this->parameters = [];
     }
 
     /**
@@ -201,6 +202,22 @@ class Request
     {
         if (!$this->getHeader('Content-Type') && $contentType) {
             $this->addHeader('Content-Type', $contentType);
+        }
+    }
+
+    /**
+     * @param string $url
+     */
+    private static function validateUrl($url)
+    {
+        if (empty($url)) {
+            throw new \InvalidArgumentException('The request url cannot be empty.');
+        }
+
+        if (!is_string($url)) {
+            throw new \InvalidArgumentException(sprintf(
+                'The request url must be type of string, but got "%s".', gettype($url)
+            ));
         }
     }
 }

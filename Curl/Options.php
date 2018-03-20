@@ -3,7 +3,7 @@
 namespace ArturDoruch\Http\Curl;
 
 use ArturDoruch\Http\Cookie\CookieFile;
-use ArturDoruch\Http\RequestHandler;
+use ArturDoruch\Http\Request;
 
 /**
  * @author Artur Doruch <arturdoruch@interia.pl>
@@ -11,53 +11,55 @@ use ArturDoruch\Http\RequestHandler;
 class Options
 {
     /**
-     * Default cURL options.
-     *
-     * @var array
-     */
-    private $defaultOptions = array();
-
-    /**
-     * The last request cURL options.
-     *
-     * @var array
-     */
-    private $options = array();
-
-    /**
-     * Array collection of cURL options with "CURLOPT_" => int pairs.
-     *
-     * @var array
-     */
-    private $curlOptConstants = array();
-
-    /**
      * Array collection of cURL options with int => "CURLOPT_" pairs.
      *
      * @var array
      */
-    private $curlOptConstantsHash = array();
+    private $optionsValueNameMap = [];
 
     /**
      * @var CookieFile
      */
     private $cookieFile;
 
-    public function __construct(CookieFile $cookieFile = null)
+    /**
+     * Default cURL options.
+     *
+     * @var array
+     */
+    private $defaultOptions = [];
+
+    /**
+     * cURL options used to send the last request.
+     *
+     * @var array
+     */
+    private $lastOptions = [];
+
+    /**
+     * @param CookieFile|null $cookieFile
+     * @param array $default
+     */
+    public function __construct(CookieFile $cookieFile = null, array $default = [])
     {
+        $this->setOptionConstants();
         $this->cookieFile = $cookieFile;
-        $this->setCurlOptConstants();
+        $this->setDefault($default);
     }
 
     /**
-     * @param RequestHandler $handler
-     * @param array $options User cURL options
+     * Prepares request options.
+     *
+     * @param array      $options The request cURL options.
+     * @param Request    $request
+     * @param Stream     $stream
+     * @param HeadersBag $headersBag
+     *
+     * @return array
      */
-    public function prepareOptions(RequestHandler $handler, array $options = array())
+    public function prepare(array $options, Request $request, &$stream, &$headersBag)
     {
-        $request = $handler->getRequest();
-
-        $options = $this->parseOptions($options) + $this->defaultOptions;
+        $options = $this->parse($options) + $this->defaultOptions;
         $options[CURLOPT_URL] = $url = $request->getUrl();
         $options[CURLOPT_HEADER] = false;
 
@@ -66,118 +68,125 @@ class Options
             $options[CURLOPT_HTTPHEADER][] = $name . ': ' . $value;
         }
 
-        $options[CURLOPT_HEADERFUNCTION] = function ($ch, $header) use ($handler) {
-            $handler->addHeader((int) $ch, trim($header));
-
-            return strlen($header);
-        };
-
         if ($this->cookieFile) {
             $options[CURLOPT_COOKIEJAR] = $this->cookieFile->getFilename();
             $options[CURLOPT_COOKIEFILE] = $this->cookieFile->getFilename();
         }
 
+        // Set header listener function
+        $headersBag = new HeadersBag();
+        $options[CURLOPT_HEADERFUNCTION] = function ($handel, $header) use ($headersBag) {
+            $headersBag->add(trim($header));
+
+            return strlen($header);
+        };
+        // Stream
+        $options[CURLOPT_RETURNTRANSFER] = false;
+        $options[CURLOPT_FILE] = fopen('php://temp', 'w+');
+        $stream = new Stream($options[CURLOPT_FILE]);
+
         $method = strtoupper($request->getMethod());
-        $params = $request->getParameters();
+        $parameters = $request->getParameters();
 
         if ($method === 'HEAD') {
             $options[CURLOPT_NOBODY] = true;
+            $this->unsetFileAndFunctionOptions($options);
         } elseif ($method !== 'GET' && $method !== 'POST') {
             $options[CURLOPT_CUSTOMREQUEST] = $method;
         }
 
-        $isFormMethod = in_array($method, array('POST', 'PUT', 'PATCH'));
+        $isFormMethod = in_array($method, ['POST', 'PUT', 'PATCH']);
 
         if ($method !== 'GET' && $method !== 'HEAD') {
             if ($request->getBody()) {
                 $options[CURLOPT_POSTFIELDS] = $request->getBody();
             } elseif ($isFormMethod) {
                 $options[CURLOPT_POST] = true;
-                $options[CURLOPT_POSTFIELDS] = http_build_query($params);
+                $options[CURLOPT_POSTFIELDS] = http_build_query($parameters);
             }
         }
 
-        if (!$isFormMethod && $params) {
+        if (!$isFormMethod && $parameters) {
             // Add url query from form parameters.
             if (($pos = strpos($url, '?')) !== false) {
                 $url = substr($url, 0, $pos);
             }
-            $options[CURLOPT_URL] = $url . '?' . http_build_query($params);
+            $options[CURLOPT_URL] = $url . '?' . http_build_query($parameters, null, '&', PHP_QUERY_RFC3986);
             $request->setUrl($options[CURLOPT_URL]);
         }
 
-        if ($cookies = $request->getCookies()) {
-            if (count($cookies) > 0) {
-                $options[CURLOPT_COOKIE] = $cookies[0];
-            }
+        $cookies = $request->getCookies();
+        if (!empty($cookies)) {
+            $options[CURLOPT_COOKIE] = join('; ', $cookies);
         }
 
-        $this->options = $options;
-        $handler->setOptions($options);
+        return $this->lastOptions = $options;
     }
 
     /**
-     * Sets default cURL options, which will be used in every request.
+     * Sets default cURL options, which will be applying to every request.
      *
      * @param array $options
      */
-    public function setDefaultOptions(array $options)
+    public function setDefault(array $options)
     {
-        $defaultOptions = array(
-            CURLOPT_RETURNTRANSFER => true,
+        $defaultOptions = [
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_TIMEOUT => 200,
             CURLOPT_CONNECTTIMEOUT => 180,
             CURLOPT_ENCODING => '',
-            CURLOPT_USERAGENT => 'Client http'
-            // CURLOPT_FILE => fopen('php://temp', 'w+'),
-        );
+            CURLOPT_USERAGENT => 'Client HTTP',
+        ];
 
-        $this->defaultOptions = $this->parseOptions($options) + $defaultOptions;
+        $this->defaultOptions = $this->parse($options) + $defaultOptions;
     }
 
     /**
-     * @param bool $keyAsConstantName
+     * @param bool $keysAsConstants
+     *
      * @return array
      */
-    public function getDefaultOptions($keyAsConstantName = false)
+    public function getDefault($keysAsConstants = false)
     {
-        return $this->collectOptions($this->defaultOptions, $keyAsConstantName);
+        return $this->getOptions($this->defaultOptions, $keysAsConstants);
     }
 
     /**
-     * Gets current cURL options used with the last request.
+     * Gets cURL options used to send the last request.
      *
-     * @param bool $keyAsConstantName
+     * @param bool $keysAsConstants
      *
      * @return array
      */
-    public function getOptions($keyAsConstantName = false)
+    public function getLast($keysAsConstants = false)
     {
-        $options = $this->options;
+        $options = $this->lastOptions;
+        $this->unsetFileAndFunctionOptions($options);
         unset($options[CURLOPT_HEADERFUNCTION]);
 
-        return $this->collectOptions($options, $keyAsConstantName);
+        return $this->getOptions($options, $keysAsConstants);
     }
 
     /**
      * @param array $options
-     * @param bool $keyAsConstantName
+     * @param bool $keysAsConstants
+     *
      * @return array
      */
-    private function collectOptions(array $options, $keyAsConstantName = false)
+    private function getOptions(array $options, $keysAsConstants)
     {
-        if ($keyAsConstantName === false) {
+        if ($keysAsConstants !== true) {
             return $options;
         }
 
-        $curlOptions = array();
-        foreach ($options as $number => $value) {
-            $curlOptions[$this->curlOptConstantsHash[$number]] = $value;
+        $_options = [];
+
+        foreach ($options as $key => $value) {
+            $_options[$this->optionsValueNameMap[$key]] = $value;
         }
 
-        return $curlOptions;
+        return $_options;
     }
 
     /**
@@ -185,41 +194,55 @@ class Options
      *
      * @return array
      */
-    private function parseOptions(array $options)
+    private function parse(array $options)
     {
-        $properOptions = array();
+        $_options = [];
+
         foreach ($options as $option => $value) {
             $opt = $option;
+
             if (strpos($option, 'CURLOPT_') !== false || strpos($option, 'CURLINFO_') !== false) {
                 $option = @constant($option);
             } elseif (is_string($option)) {
                 $option = @constant('CURLOPT_' . strtoupper($option));
             }
 
-            if (!isset($this->curlOptConstantsHash[$option])) {
+            if (!isset($this->optionsValueNameMap[$option])) {
                 throw new \InvalidArgumentException('Couldn\'t find cURL constant '. $opt);
             }
 
-            $properOptions[$option] = $value;
+            $_options[$option] = $value;
         }
 
-        return $properOptions;
+        return $_options;
     }
 
-
-    private function setCurlOptConstants()
+    /**
+     * Gets list of cURL option constants.
+     */
+    private function setOptionConstants()
     {
         $constants = get_defined_constants(true);
 
-        if (isset($constants['curl'])) {
-            foreach ($constants['curl'] as $name => $value) {
-                if (strpos($name, 'CURLOPT') === 0 || strpos($name, 'CURLINFO') === 0) {
-                    $this->curlOptConstants[$name] = $value;
-                }
-            }
-
-            $this->curlOptConstantsHash = array_flip($this->curlOptConstants);
+        if (!isset($constants['curl'])) {
+            return;
         }
+
+        foreach ($constants['curl'] as $name => $value) {
+            if (strpos($name, 'CURLOPT') === 0 || strpos($name, 'CURLINFO') === 0) {
+                $this->optionsValueNameMap[$value] = $name;
+            }
+        }
+    }
+
+    private function unsetFileAndFunctionOptions(array &$options)
+    {
+        unset(
+            $options[CURLOPT_WRITEFUNCTION],
+            $options[CURLOPT_READFUNCTION],
+            $options[CURLOPT_FILE],
+            $options[CURLOPT_INFILE]
+        );
     }
 }
  
