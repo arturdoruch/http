@@ -4,6 +4,7 @@ namespace ArturDoruch\Http\Message;
 
 use ArturDoruch\Http\Redirect;
 use ArturDoruch\Http\Util\HtmlUtils;
+use ArturDoruch\Http\Request;
 
 /**
  * @author Artur Doruch <arturdoruch@interia.pl>
@@ -12,11 +13,6 @@ class Response implements \JsonSerializable, ResponseInterface
 {
     use ResponseTrait;
     use MessageTrait;
-
-    /**
-     * @var string
-     */
-    private $requestUrl;
 
     /**
      * @var string
@@ -41,17 +37,22 @@ class Response implements \JsonSerializable, ResponseInterface
     /**
      * @var array
      */
-    private $redirects = array();
+    private $redirects = [];
 
     /**
      * @var array
      */
-    private $curlInfo = array();
+    private $curlInfo = [];
 
     /**
      * @var string
      */
     private $body;
+
+    /**
+     * @var Request
+     */
+    private $request;
 
     public function __clone()
     {
@@ -145,28 +146,6 @@ class Response implements \JsonSerializable, ResponseInterface
     }
 
     /**
-     * Request url.
-     *
-     * @return string
-     */
-    public function getRequestUrl()
-    {
-        return $this->requestUrl;
-    }
-
-    /**
-     * @param string $url Request url.
-     *
-     * @return $this
-     */
-    public function setRequestUrl($url)
-    {
-        $this->requestUrl = $url;
-
-        return $this;
-    }
-
-    /**
      * @return string
      */
     public function getContentType()
@@ -241,6 +220,34 @@ class Response implements \JsonSerializable, ResponseInterface
         }
 
         return $rawHeaders . "\r\n";
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return $this
+     */
+    public function setRequest(Request $request)
+    {
+        $this->request = $request;
+
+        return $this;
+    }
+
+    /**
+     * @return Request
+     */
+    public function getRequest()
+    {
+        return $this->request;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRequestUrl()
+    {
+        return $this->request->getUrl();
     }
 
     /**
