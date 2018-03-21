@@ -74,7 +74,7 @@ class MessageHandler
 
         $response = new Response();
         $response
-            ->setRequest($this->request)
+            ->setRequestUrl($this->request->getUrl())
             ->setEffectiveUrl($info['url'])
             ->setContentType($info['content_type'])
             ->setErrorMsg(curl_error($handler))

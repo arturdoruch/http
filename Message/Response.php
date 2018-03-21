@@ -4,7 +4,6 @@ namespace ArturDoruch\Http\Message;
 
 use ArturDoruch\Http\Redirect;
 use ArturDoruch\Http\Util\HtmlUtils;
-use ArturDoruch\Http\Request;
 
 /**
  * @author Artur Doruch <arturdoruch@interia.pl>
@@ -13,6 +12,11 @@ class Response implements \JsonSerializable, ResponseInterface
 {
     use ResponseTrait;
     use MessageTrait;
+
+    /**
+     * @var string
+     */
+    private $requestUrl;
 
     /**
      * @var string
@@ -49,11 +53,6 @@ class Response implements \JsonSerializable, ResponseInterface
      */
     private $body;
 
-    /**
-     * @var Request
-     */
-    private $request;
-
     public function __clone()
     {
     }
@@ -71,6 +70,26 @@ class Response implements \JsonSerializable, ResponseInterface
     /**
      * @return string
      */
+    public function getRequestUrl()
+    {
+        return $this->requestUrl;
+    }
+
+    /**
+     * @param string $url
+     *
+     * @return $this
+     */
+    public function setRequestUrl($url)
+    {
+        $this->requestUrl = $url;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
     public function getEffectiveUrl()
     {
         return $this->effectiveUrl;
@@ -78,6 +97,7 @@ class Response implements \JsonSerializable, ResponseInterface
 
     /**
      * @param string $effectiveUrl
+     *
      * @return $this
      */
     public function setEffectiveUrl($effectiveUrl)
@@ -116,6 +136,7 @@ class Response implements \JsonSerializable, ResponseInterface
 
     /**
      * @param int $errorNumber
+     *
      * @return $this
      */
     public function setErrorNumber($errorNumber)
@@ -220,34 +241,6 @@ class Response implements \JsonSerializable, ResponseInterface
         }
 
         return $rawHeaders . "\r\n";
-    }
-
-    /**
-     * @param Request $request
-     *
-     * @return $this
-     */
-    public function setRequest(Request $request)
-    {
-        $this->request = $request;
-
-        return $this;
-    }
-
-    /**
-     * @return Request
-     */
-    public function getRequest()
-    {
-        return $this->request;
-    }
-
-    /**
-     * @return string
-     */
-    public function getRequestUrl()
-    {
-        return $this->request->getUrl();
     }
 
     /**
