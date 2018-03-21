@@ -1,9 +1,9 @@
 # Http
 
-HTTP client for making http requests in enjoyable way.
+HTTP client for making HTTP requests in enjoyable way.
 
 ## Installation
-Via composer just run command
+Via composer
 ```
 composer require "arturdoruch/http"
 ```
@@ -12,7 +12,7 @@ composer require "arturdoruch/http"
 
 ### Basic usage
 
-Making http request is pretty straightforward.
+Making HTTP request is pretty straightforward.
 
 ```php
 use ArturDoruch\Http\Client;
@@ -35,32 +35,30 @@ foreach ($response->getHeaders() as $header => $value) {
 }
 ```
 
-### Create a client
+### Creating a client
 
 ```php
 use ArturDoruch\Http\Cookie\CookieFile;
 use ArturDoruch\Http\Client;
 
 // Set curl options, which will be used in all http requests.
-$curlOptions = array(
+$curlOptions = [
     'followlocation' => false,
     'timeout' => 120
-);
+];
 
-// Enabled or disabled throwing RequestException, when request is complete 
-// (when "complete" event is fired) and status code is: 0, 4xx or 5xx.
+// Enabled or disabled throwing RequestException, when request is complete and response status code is 4xx, 5xx or 0.
 $throwExceptions = true;
 
 // Set file where all http session cookies should be stored.
-$filename = 'path/to/cookies.txt';
-$cookieFile = new CookieFile($filename);
+$cookieFile = new CookieFile('path/to/cookies.txt');
 
 $client = new Client($curlOptions, $throwExceptions, $cookieFile);
 ```
 
 ### Sending requests
 
-You can send requests with dedicated methods,
+You can send requests with dedicated methods
 ```php
 $response = $client->get('http://httpbin.org/get');
 $response = $client->post('http://httpbin.org/post');
@@ -77,26 +75,41 @@ $request = new Request('DELETE', 'http://httpbin.org/delete');
 $response = $client->request($request);
 ```
 
-#### Multi (parallel) requests
+### Sending multi (parallel) requests
 ```php
-$urls = array(
-    // The list of urls to requested
-);
-$responses = $client->multiRequest($urls);
+$requests = [
+    // The list of ArturDoruch\Http\Request objects or urls to send. 
+];
+$responses = $client->multiRequest($requests);
 
 foreach ($responses as $response) {
     var_dump($response->getBody());
 }
 ```
 
+### Sending POST, PATCH, PUT requests with form data
+
+```php
+// Form data
+$parameters = [
+    'name' => 'value',
+    'choices' => [1, 2, 3]
+];
+
+$response = $client->post('http://httpbin.org/post', $parameters);
+
+$request = new Request('POST', 'http://httpbin.org/post', $parameters);
+$response = $client->request($request);
+```
+
 ### Request options
 
-Request options allows to set request body, headers, cookie, which will be send with http request.
+Request options allows to set request: body, headers, cookies, ect. to send with HTTP request.
 Those options can be passed into Client::get(), Client::post(), etc. methods as third argument,
 or into Client::createRequest() as fourth argument.
 
 <a name="#cookie"></a>
-####<i>cookie</i>
+#### <i>cookie</i>
 
 <b>type</b>: string
 
@@ -108,7 +121,7 @@ $client->get('/get', [], [
 ```
 
 <a name="#headers"></a>
-####<i>headers</i>
+#### <i>headers</i>
 
 <b>type</b>: array
 
@@ -123,11 +136,11 @@ $client->get('/get', [], [
 ```
 
 <a name="#body"></a>
-####<i>body</i>
+#### <i>body</i>
 
 <b>type</b>: string|resource
 
-Sets request body as plain text.
+Send request body as plain text.
 
 ```php
 // Send body as plain text taken from resource.
@@ -139,11 +152,12 @@ $client->post('/post', [], ['body' => 'Raw data']);
 ```
 
 <a name="#json"></a>
-####<i>json</i>
+#### <i>json</i>
 
 <b>type</b>: array
 
-Send json
+Send json.
+
 ```php
 $client->put('/put', [], [
     'json' => [
@@ -154,9 +168,9 @@ $client->put('/put', [], [
 ```
 
 <a name="#files"></a>
-####<i>files</i>
+#### <i>files</i>
 
-<b>type</b>: PostFile[]
+<b>type</b>: ArturDoruch\Http\Post\PostFile[]
 
 Send files.
 
@@ -171,62 +185,63 @@ $client->post('/post', [], [
 ]);
 ```
 
-### Http Request events listeners
+### HTTP request events
 
 While HTTP request is making, are called two events:
 
- * BEFORE - event called just before send HTTP request,
- * COMPLETE - event called when HTTP request is done.
+ * request.before - called just before send HTTP request
+ * request.complete - called when HTTP request is done.
   
 To add listeners for those events use Client::addListener() method. 
-The registered listener function depends on event to listen for, receive argument:
+The registered listeners depends on event to listen for, receive argument:
 
- * ArturDoruch\Http\Event\BeforeEvent - for BEFORE event,
- * ArturDoruch\Http\Event\CompleteEvent - for COMPLETE event.
+ * ArturDoruch\Http\Event\BeforeEvent - for request.before event,
+ * ArturDoruch\Http\Event\CompleteEvent - for request.complete event.
 
 ```php
-use App\EventListener\HttpListener;
+use App\EventListener\HttpRequestListener;
 use ArturDoruch\Http\Event\BeforeEvent;
 use ArturDoruch\Http\Event\CompleteEvent;
 use ArturDoruch\Http\Event\RequestEvents;
 
-// Add listener to BEFORE event as anonymous function.
+// Add listener to request.before event as anonymous function.
 $client->addListener(RequestEvents::BEFORE, function (BeforeEvent $event) {
-        $request = $event->getRequest();
-    });
+    $request = $event->getRequest();
+});
+
+// Add listener to request.before event as method class.
+$client->addListener(RequestEvents::BEFORE, [new HttpRequestListener(), 'onBefore']);
     
-// Add listener to BEFORE event as method class.
-$client->addListener(RequestEvents::BEFORE, array(new HttpListener(), 'onBefore'));
-    
-// Add listener to COMPLETE event as method class.
-$client->addListener(RequestEvents::COMPLETE, array(new HttpListener(), 'onComplete'));
+// Add listener to request.complete event as method class.
+$client->addListener(RequestEvents::COMPLETE, [new HttpRequestListener(), 'onComplete']);
 ```
 
-Example of HTTP events listener class.
+Example of HttpRequestListener class.
+
 ```php
 namespace App\EventListener;
 
 use ArturDoruch\Http\Event\BeforeEvent;
 use ArturDoruch\Http\Event\CompleteEvent;
 
-class HttpListener
-{
+class HttpRequestListener
+{    
     /**
-     * @param CompleteEvent $event Emitted event
-     */
-    public function onComplete(CompleteEvent $event)
-    {
-        $response = $event->getResponse();
-        // Do some actions when HTTP request is complete.
-    }
-    
-    /**
-     * @param BeforeEvent $event Emitted event
+     * @param BeforeEvent $event
      */
     public function onBefore(BeforeEvent $event)
     {
         $request = $event->getRequest();
         // Do some actions before HTTP request is sending.
+    }
+
+    /**
+     * @param CompleteEvent $event
+     */
+    public function onComplete(CompleteEvent $event)
+    {
+        $response = $event->getResponse();
+        // Do some actions when HTTP request is complete.
     }
 }
 ```
@@ -267,10 +282,10 @@ As default are exposed properties: statusCode, headers, body.
  
 ```php
 // Expose only the "statusCode" and "body" properties.
-$response->expose(array(
-        'statusCode',
-        'body',
-    ));    
+$response->expose([
+    'statusCode',
+    'body',
+]);    
 // The array will contain only "statusCode" and "body" keys.    
 $responseArray = $response->toArray();
 ```

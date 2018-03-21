@@ -38,15 +38,14 @@ class Client extends AbstractClient
     private $messageHandlerFactory;
 
     /**
-     * @param array $curlOptions     cURL options as array with key, value pairs, where
-     *                               key is cURL option. Key can be in three different formats:
-     *                                - full constant name or,
-     *                                - constant integer value or,
-     *                                - constant name without part "CURLOPT_".
+     * @param array $curlOptions     cURL options, array with key-value pairs, where key is the cURL option
+     *                               and can be in three formats:
+     *                                - full constant name
+     *                                - constant integer value
+     *                                - constant name without "CURLOPT_" prefix.
      *                               For example to set CURLOPT_TIMEOUT to 15 seconds,
-     *                               pass [CURLOPT_TIMEOUT => 15] or [13 => 15] or ['timeout' => 15].
-     * @param bool $throwException   It true RequestException will be thrown, when server, client
-     *                               or connection error occur.
+     *                               pass [CURLOPT_TIMEOUT => 15], [13 => 15] or ['timeout' => 15].
+     * @param bool $throwException   It true RequestException will be thrown when response status code is 4xx, 5xx or 0.
      * @param CookieFile $cookieFile Set if you want to store website session cookies into text file.
      */
     public function __construct(array $curlOptions = array(), $throwException = true, CookieFile $cookieFile = null)
