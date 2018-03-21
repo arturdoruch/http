@@ -131,16 +131,15 @@ class Client extends AbstractClient
      * BEFORE - event called just before send HTTP request,
      * COMPLETE - event called when HTTP request is done.
      *
-     * @param string   $eventName One of RequestEvents constants.
-     * @param callable $listener  The listener function receive one argument - event object.
+     * @param string   $eventName One of: request.before, request.complete. See ArturDoruch\Http\Event\RequestEvents class.
+     * @param callable $listener  The listener function, which receives event object as argument.
      *                            For BEFORE event will be ArturDoruch\Http\Event\BeforeEvent,
      *                            for COMPLETE event will be ArturDoruch\Http\Event\CompleteEvent object.
-     * @param int      $priority  The higher this value, the earlier an event
-     *                            listener will be triggered in the chain.
+     * @param int      $priority  The higher this value, the earlier an event listener will be triggered in the chain.
      */
     public function addListener($eventName, callable $listener, $priority = 0)
     {
-        $this->dispatcherHelper->getDispatcher()->addListener($eventName, $listener, $priority);
+        $this->eventDispatcher->addListener($eventName, $listener, $priority);
     }
 
     /**

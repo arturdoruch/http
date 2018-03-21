@@ -34,7 +34,7 @@ class CompleteEvent extends Event
 
     /**
      * @param Request $request
-     * @param Response|Response[] $response
+     * @param Response $response
      * @param Client $client
      * @param bool $multiRequest
      */

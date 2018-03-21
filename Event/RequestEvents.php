@@ -11,14 +11,14 @@ namespace ArturDoruch\Http\Event;
 final class RequestEvents
 {
     /**
-     * The BEFORE event is dispatched just before send HTTP request.
+     * The event occurs just before send HTTP request.
      *
      * @Event
      */
     const BEFORE = 'request.before';
 
     /**
-     * The COMPLETE event is dispatched when HTTP request is done.
+     * The event occurs when HTTP request is done.
      *
      * @Event
      */

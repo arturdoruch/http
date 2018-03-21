@@ -6,16 +6,15 @@ use ArturDoruch\Http\Event\CompleteEvent;
 use ArturDoruch\Http\Exception\RequestException;
 
 /**
- * Throws exceptions when response status code is 4xx, 5xx or 0
- *
  * @author Artur Doruch <arturdoruch@interia.pl>
  */
 class HttpErrorListener
 {
     /**
-     * Throw a RequestException on an HTTP protocol error
+     * Throws RequestException when response status code is 4xx, 5xx or 0.
      *
-     * @param CompleteEvent $event Emitted event
+     * @param CompleteEvent $event
+     *
      * @throws RequestException
      */
     public function onComplete(CompleteEvent $event)
@@ -25,7 +24,7 @@ class HttpErrorListener
         }
 
         $code = (string) $event->getResponse()->getStatusCode();
-        // Throw an exception for an unsuccessful response
+
         if ($code[0] >= 4 || $code[0] == 0) {
             throw RequestException::create($event->getResponse(), null, $event->getRequest());
         }

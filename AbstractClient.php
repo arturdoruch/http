@@ -3,7 +3,9 @@
 namespace ArturDoruch\Http;
 
 use ArturDoruch\Http\Curl\MessageHandler;
-use ArturDoruch\Http\Event\EventDispatcherHelper;
+use ArturDoruch\Http\Event\EventDispatcher;
+use ArturDoruch\Http\Event\RequestEvents;
+use ArturDoruch\Http\EventListener\HttpErrorListener;
 use ArturDoruch\Http\Message\Response;
 use ArturDoruch\Http\Message\ResponseCollection;
 
@@ -35,18 +37,19 @@ abstract class AbstractClient
     private $responseCollection;
 
     /**
-     * @var EventDispatcherHelper
+     * @var EventDispatcher
      */
-    protected $dispatcherHelper;
+    protected $eventDispatcher;
 
     /**
      * @param bool $throwException
      */
     public function __construct($throwException)
     {
-        $this->dispatcherHelper = new EventDispatcherHelper();
+        $this->eventDispatcher = new EventDispatcher();
+
         if ($throwException === true) {
-            $this->dispatcherHelper->addHttpErrorListener();
+            $this->eventDispatcher->addListener(RequestEvents::COMPLETE, [new HttpErrorListener(), 'onComplete']);
         }
     }
 
@@ -70,7 +73,7 @@ abstract class AbstractClient
         $handle = curl_init();
         curl_setopt_array($handle, $messageHandler->getOptions());
 
-        $this->dispatcherHelper->requestBefore($messageHandler->getRequest(), $this);
+        $this->eventDispatcher->dispatchRequestBefore($messageHandler->getRequest(), $this);
 
         curl_exec($handle);
         $this->handleResponse($handle, $messageHandler);
@@ -158,7 +161,7 @@ abstract class AbstractClient
 
         $this->registerMessageHandler($handel, $messageHandler);
 
-        $this->dispatcherHelper->requestBefore($request, $this);
+        $this->eventDispatcher->dispatchRequestBefore($request, $this);
     }
 
     /**
@@ -172,7 +175,7 @@ abstract class AbstractClient
     {
         $response = $messageHandler->createResponse($handel);
         // Dispatch event
-        $this->dispatcherHelper->requestComplete($messageHandler->getRequest(), $response, $this, $multiRequest);
+        $this->eventDispatcher->dispatchRequestComplete($messageHandler->getRequest(), $response, $this, $multiRequest);
         $this->responseCollection->add($response, (int)$handel);
     }
 
