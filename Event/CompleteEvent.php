@@ -63,6 +63,14 @@ class CompleteEvent extends Event
     }
 
     /**
+     * @param Response $response
+     */
+    public function setResponse(Response $response)
+    {
+        $this->response = $response;
+    }
+
+    /**
      * @return Client
      */
     public function getClient()
