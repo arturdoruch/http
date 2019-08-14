@@ -93,9 +93,7 @@ class MessageHandler
                 $response->addRedirect($redirect);
             }
         } else {
-            $response
-                ->setStatusCode($info['http_code'])
-                ->setReasonPhrase(ResponseUtils::getReasonPhrase($info['http_code']));
+            $response->setStatusCode($info['http_code']);
         }
 
         self::compileCurlInfo($info);
@@ -117,8 +115,7 @@ class MessageHandler
 
         $response
             ->setProtocol($parts[0])
-            ->setStatusCode($parts[1])
-            ->setReasonPhrase(isset($parts[2]) ? $parts[2] : ResponseUtils::getReasonPhrase($parts[1]));
+            ->setStatusCode($parts[1], isset($parts[2]) ? $parts[2] : null);
 
         // Set headers
         foreach ($headers as $header) {

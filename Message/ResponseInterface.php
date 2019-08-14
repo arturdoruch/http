@@ -16,10 +16,11 @@ interface ResponseInterface
 
     /**
      * @param int $statusCode
+     * @param string|null $reasonPhrase
      *
      * @return $this
      */
-    public function setStatusCode($statusCode);
+    public function setStatusCode($statusCode, $reasonPhrase = null);
 
     /**
      * @return string Reason phrase
@@ -30,6 +31,8 @@ interface ResponseInterface
      * @param string $reasonPhrase
      *
      * @return $this
+     *
+     * @deprecated Set reason phrase with setStatusCode() method instead.
      */
     public function setReasonPhrase($reasonPhrase);
 

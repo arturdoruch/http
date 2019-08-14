@@ -2,6 +2,8 @@
 
 namespace ArturDoruch\Http\Message;
 
+use ArturDoruch\Http\Util\ResponseUtils;
+
 /**
  * Representation of an outgoing, server-side response.
  *
@@ -33,12 +35,14 @@ trait ResponseTrait
 
     /**
      * @param int $statusCode
+     * @param string|null $reasonPhrase
      *
      * @return $this
      */
-    public function setStatusCode($statusCode)
+    public function setStatusCode($statusCode, $reasonPhrase = null)
     {
-        $this->statusCode = (int)$statusCode;
+        $this->statusCode = (int) $statusCode;
+        $this->reasonPhrase = $reasonPhrase ?: ResponseUtils::getReasonPhrase($statusCode);
 
         return $this;
     }
@@ -55,6 +59,8 @@ trait ResponseTrait
      * @param string $reasonPhrase
      *
      * @return $this
+     *
+     * @deprecated Set reason phrase with setStatusCode() method instead.
      */
     public function setReasonPhrase($reasonPhrase)
     {
@@ -63,4 +69,3 @@ trait ResponseTrait
         return $this;
     }
 }
- 
