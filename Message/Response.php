@@ -19,6 +19,11 @@ class Response implements \JsonSerializable, ResponseInterface
     private $requestUrl;
 
     /**
+     * @var array
+     */
+    private $requestHeaders = [];
+
+    /**
      * @var string
      */
     private $effectiveUrl;
@@ -44,9 +49,9 @@ class Response implements \JsonSerializable, ResponseInterface
     private $redirects = [];
 
     /**
-     * @var array
+     * @var array The cURL request information.
      */
-    private $curlInfo = [];
+    private $info = [];
 
     /**
      * @var string
@@ -186,28 +191,6 @@ class Response implements \JsonSerializable, ResponseInterface
     }
 
     /**
-     * Gets cURL response information.
-     *
-     * @return array
-     */
-    public function getCurlInfo()
-    {
-        return $this->curlInfo;
-    }
-
-    /**
-     * @param array $curlInfo
-     *
-     * @return $this
-     */
-    public function setCurlInfo(array $curlInfo)
-    {
-        $this->curlInfo = $curlInfo;
-
-        return $this;
-    }
-
-    /**
      * @return string
      */
     public function getBody()
@@ -228,7 +211,7 @@ class Response implements \JsonSerializable, ResponseInterface
     }
 
     /**
-     * Gets the raw headers as a string
+     * Gets the raw headers as a string.
      *
      * @return string
      */
@@ -241,6 +224,94 @@ class Response implements \JsonSerializable, ResponseInterface
         }
 
         return $rawHeaders . "\r\n";
+    }
+
+    /**
+     * Gets the actual headers of the sent request.
+     *
+     * @return array
+     */
+    public function getRequestHeaders()
+    {
+        if (!$this->requestHeaders && ($requestHeader = $this->getInfo('request_header'))) {
+            $this->requestHeaders = self::getRequestHeadersStatic($requestHeader);
+        }
+
+        return $this->requestHeaders;
+    }
+
+    /**
+     * @param string $requestHeader The cURL request_header info.
+     *
+     * @return array
+     */
+    private static function getRequestHeadersStatic($requestHeader)
+    {
+        $headers = [];
+        $headerLines = explode("\n", trim($requestHeader));
+        array_shift($headerLines);
+
+        foreach ($headerLines as $headerLine) {
+            $parts = explode(': ', $headerLine);
+            $headers[$parts[0]] = isset($parts[1]) ? $parts[1] : '';
+        }
+
+        return $headers;
+    }
+
+    /**
+     * Gets request information, returned by cURL function curl_getinfo().
+     *
+     * @param string $type The information type.
+     *
+     * @return array|string|null
+     */
+    public function getInfo($type = null)
+    {
+        if ($type) {
+            return isset($this->info[$type]) ? $this->info[$type] : null;
+        }
+
+        return $this->info;
+    }
+
+    /**
+     * @param array $info
+     *
+     * @return $this
+     */
+    public function setInfo(array $info)
+    {
+        $this->requestHeaders = [];
+        $this->info = $info;
+
+        return $this;
+    }
+
+    /**
+     * @deprecated Use method Response::getInfo() instead.
+     *
+     * Gets cURL response information.
+     *
+     * @return array
+     */
+    public function getCurlInfo()
+    {
+        return $this->info;
+    }
+
+    /**
+     * @deprecated Use method Response::setInfo() instead.
+     *
+     * @param array $curlInfo
+     *
+     * @return $this
+     */
+    public function setCurlInfo(array $curlInfo)
+    {
+        $this->info = $curlInfo;
+
+        return $this;
     }
 
     /**

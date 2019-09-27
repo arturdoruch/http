@@ -97,7 +97,7 @@ class MessageHandler
         }
 
         self::compileCurlInfo($info);
-        $response->setCurlInfo($info);
+        $response->setInfo($info);
 
         return $response;
     }
