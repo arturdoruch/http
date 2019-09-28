@@ -23,7 +23,7 @@ class Stream
     public function __construct($stream)
     {
         if (!is_resource($stream)) {
-            throw new \InvalidArgumentException('Stream must be a resource');
+            throw new \InvalidArgumentException('Stream must be a resource.');
         }
 
         $this->stream = $stream;

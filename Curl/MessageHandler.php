@@ -6,7 +6,6 @@ use ArturDoruch\Http\Message\Response;
 use ArturDoruch\Http\Message\ResponseInterface;
 use ArturDoruch\Http\Redirect;
 use ArturDoruch\Http\Request;
-use ArturDoruch\Http\Util\ResponseUtils;
 
 /**
  * @author Artur Doruch <arturdoruch@interia.pl>
@@ -24,14 +23,14 @@ class MessageHandler
     private $options;
 
     /**
-     * @var HeadersBag
-     */
-    private $headersBag;
-
-    /**
      * @var Stream
      */
     private $stream;
+
+    /**
+     * @var HeadersBag
+     */
+    private $headersBag;
 
     /**
      * @param Request    $request
@@ -43,8 +42,8 @@ class MessageHandler
     {
         $this->request = $request;
         $this->options = $options;
-        $this->headersBag = $headersBag;
         $this->stream = $stream;
+        $this->headersBag = $headersBag;
     }
 
     /**
