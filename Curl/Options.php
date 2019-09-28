@@ -11,9 +11,7 @@ use ArturDoruch\Http\Request;
 class Options
 {
     /**
-     * Array collection of cURL options with int => "CURLOPT_" pairs.
-     *
-     * @var array
+     * @var array Array collection of cURL options with int => "CURLOPT_" pairs.
      */
     private $optionsValueNameMap = [];
 
@@ -23,16 +21,12 @@ class Options
     private $cookieFile;
 
     /**
-     * Default cURL options.
-     *
-     * @var array
+     * @var array Default cURL options.
      */
     private $defaultOptions = [];
 
     /**
-     * cURL options used to send the last request.
-     *
-     * @var array
+     * @var array The cURL options used to send the last request.
      */
     private $lastOptions = [];
 
@@ -137,6 +131,7 @@ class Options
             CURLOPT_CONNECTTIMEOUT => 180,
             CURLOPT_ENCODING => '',
             CURLOPT_USERAGENT => 'Client HTTP',
+            CURLINFO_HEADER_OUT => true,
         ];
 
         $this->defaultOptions = $this->parse($options) + $defaultOptions;
