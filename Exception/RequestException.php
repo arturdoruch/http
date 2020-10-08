@@ -96,23 +96,27 @@ class RequestException extends \RuntimeException
 
     private static function createMessage(Request $request = null, Response $response)
     {
-        $message = static::getErrorType($response) . ': ';
-        $errorMessage = trim($response->getErrorMsg());
+        $message = static::getErrorType($response) . ':';
 
-        if (0 === $statusCode = $response->getStatusCode()) {
-            $message .= $response->getErrorNumber() . ' ' . $errorMessage;
-        } else {
-            $message .= $statusCode . ' ';
-            $message .= $errorMessage ?: $response->getReasonPhrase();
+        if ($response->getStatusCode()) {
+            $message .= ' ' . $response->getStatusCode();
         }
 
-        $message = rtrim($message, '.,!') . ', while request ';
+        if ($response->getErrorNumber()) {
+            $message .= ' [' . $response->getErrorNumber() . ']';
+        }
+
+        if (!$errorMessage = $response->getErrorMsg()) {
+            $errorMessage = $response->getReasonPhrase();
+        }
+
+        $message .= ' "' . trim($errorMessage, ' .,!') . '", while request "';
 
         if ($request) {
-            $message .= 'GET ';
+            $message .= $request->getMethod() . ' ';
         }
 
-        return $message . $response->getRequestUrl() . '.';
+        return $message . $response->getRequestUrl() . '"';
     }
 
     /**
@@ -134,15 +138,15 @@ class RequestException extends \RuntimeException
     public static function getErrorType(Response $response)
     {
         if ($response->getStatusCode() >= 500) {
-            return 'Server request error';
+            return 'Server error';
         }
 
         if ($response->getStatusCode() >= 400) {
-            return 'Client request error';
+            return 'Client error';
         }
 
         if (self::isConnectionError($response)) {
-            return 'Connection request error';
+            return 'Connection error';
         }
 
         return 'Request error';
