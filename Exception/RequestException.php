@@ -110,7 +110,11 @@ class RequestException extends \RuntimeException
             $errorMessage = $response->getReasonPhrase();
         }
 
-        $message .= ' "' . trim($errorMessage, ' .,!') . '" while request "';
+        if ($errorMessage) {
+            $message .= ' "' . trim($errorMessage, ' .,!') . '"';
+        }
+
+        $message .= ' while request "';
 
         if ($request) {
             $message .= $request->getMethod() . ' ';
