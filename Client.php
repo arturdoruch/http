@@ -25,7 +25,7 @@ class Client extends AbstractClient
     /**
      * @var Request
      */
-    private $request;
+    private $lastRequest;
 
     /**
      * @var Response
@@ -57,7 +57,6 @@ class Client extends AbstractClient
     {
         $this->cookieFile = $cookieFile;
         $this->options = new Options($cookieFile, $curlOptions);
-        $this->request = new Request('GET', '-');
         $this->messageHandlerFactory = new MessageHandlerFactory($this->options);
 
         parent::__construct($throwException);
@@ -131,7 +130,17 @@ class Client extends AbstractClient
     }
 
     /**
-     * @return Response
+     * Gets the last sending request.
+     *
+     * @return Request|null
+     */
+    public function getLastRequest()
+    {
+        return $this->lastRequest;
+    }
+
+    /**
+     * @return Response|null
      */
     public function getLastResponse()
     {
@@ -237,6 +246,7 @@ class Client extends AbstractClient
      */
     public function request(Request $request, array $curlOptions = array())
     {
+        $this->lastRequest = $request;
         $messageHandler = $this->messageHandlerFactory->create($request, $this->curlOptions + $curlOptions);
         $this->curlOptions = [];
 
@@ -291,11 +301,8 @@ class Client extends AbstractClient
      */
     public function createRequest($url, $method = 'GET', array $parameters = array(), array $options = null)
     {
-        $request = clone $this->request;
-        $request
-            ->setUrl($url)
-            ->setMethod($method)
-            ->setParameters($parameters);
+        $request = new Request($method, $url);
+        $request->setParameters($parameters);
 
         if (!empty($options)) {
             if (isset($options['cookie'])) {
