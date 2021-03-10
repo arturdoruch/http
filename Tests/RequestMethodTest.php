@@ -60,17 +60,11 @@ class RequestMethodTest extends TestCase
     }
 
 
-    public function testPostRequestWithFormData()
+    public function testPostRequest()
     {
         $request = new Request('POST', 'https://httpbin.org/post');
-        $request->setParameters($formData = [
-            'foo' => 'bar',
-            'name' => 'value'
-        ]);
-
         $data = $this->sendRequest($request);
 
-        self::assertEquals($formData, $data['form']);
         self::assertEquals('application/x-www-form-urlencoded', $data['headers']['Content-Type']);
     }
 
