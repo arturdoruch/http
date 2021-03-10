@@ -3,7 +3,7 @@
 namespace ArturDoruch\Http;
 
 use ArturDoruch\Http\Message\MessageTrait;
-use ArturDoruch\Http\Message\RequestBody;
+use ArturDoruch\Http\Message\RequestBodyCompiler;
 
 /**
  * @author Artur Doruch <arturdoruch@interia.pl>
@@ -37,21 +37,10 @@ class Request
      */
     private $cookies = [];
 
-    /**
-     * @var RequestBody
-     */
-    private $requestBody;
-
     public function __construct($method, $url)
     {
         $this->setMethod($method);
         $this->setUrl($url);
-        $this->requestBody = new RequestBody();
-    }
-
-    public function __clone()
-    {
-        $this->requestBody = clone $this->requestBody;
     }
 
     /**
@@ -177,38 +166,33 @@ class Request
     }
 
     /**
-     * @param string|array $body Content to send with request.
-     * For sending raw data pass string.
-     * For sending json pass array with data under key "json".
-     * Example:
-     *      setBody(['json' => [
-     *          'data' => 'value'
-     *      ]]);
+     * @param string|array $body Content to send with the request. This method overrides the "Content-Type" header.
+     * Allowed body contents:
+     *  - (string) plain text
+     *  - (resource) resource
+     *  - (array) with one of the keys:
+     *    - "json" for sending JSON.
+     *      Usage:
+     *          setBody(['json' => [
+     *              'key' => 'value'
+     *          ]]);
      *
-     * For sending files pass array with PostFile instances under key "files".
-     * Example:
-     *      setBody(['files' => [
-     *          new PostFile($name, $file, $filename = null)
-     *      ]]);
+     *    - "files" with instances of the "ArturDoruch\Http\Post\PostFile" class for sending the files.
+     *      Usage:
+     *          setBody(['files' => [
+     *              new PostFile($name, $file[, $filename = null])
+     *          ]]);
+     *
+     * @param string $contentType The body content type. If not specified it will be determined based on the body.
      *
      * @return $this
      */
-    public function setBody($body)
+    public function setBody($body, $contentType = '')
     {
-        $this->body = $this->requestBody->parseBody($body);
-        $this->setContentType($this->requestBody->getContentType());
+        $this->body = RequestBodyCompiler::compile($body, $bodyContentType);
+        $this->addHeader('Content-Type', $contentType ?: $bodyContentType);
 
         return $this;
-    }
-
-    /**
-     * @param string $contentType
-     */
-    private function setContentType($contentType)
-    {
-        if ($contentType && !$this->getHeader('Content-Type')) {
-            $this->addHeader('Content-Type', $contentType);
-        }
     }
 
     /**
