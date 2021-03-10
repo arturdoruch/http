@@ -33,6 +33,11 @@ class Client extends AbstractClient
     private $lastResponse;
 
     /**
+     * @var array
+     */
+    private $curlOptions = [];
+
+    /**
      * @var MessageHandlerFactory
      */
     private $messageHandlerFactory;
@@ -104,8 +109,6 @@ class Client extends AbstractClient
     }
 
     /**
-     * @todo Rename method to getLastCurlOptions()
-     *
      * Gets cURL options used to send the last request.
      *
      * @param bool $keysAsConstants
@@ -115,6 +118,16 @@ class Client extends AbstractClient
     public function getCurlOptions($keysAsConstants = false)
     {
         return $this->options->getLast($keysAsConstants);
+    }
+
+    /**
+     * Sets cURL options for use with the next request.
+     *
+     * @param array $curlOptions
+     */
+    public function setCurlOptions(array $curlOptions)
+    {
+        $this->curlOptions = $curlOptions;
     }
 
     /**
@@ -224,13 +237,14 @@ class Client extends AbstractClient
      */
     public function request(Request $request, array $curlOptions = array())
     {
-        $messageHandler = $this->messageHandlerFactory->create($request, $curlOptions);
+        $messageHandler = $this->messageHandlerFactory->create($request, $this->curlOptions + $curlOptions);
+        $this->curlOptions = [];
 
         return $this->lastResponse = $this->sendRequest($messageHandler);
     }
 
     /**
-     * Makes multi parallel requests.
+     * Sends multi parallel requests.
      *
      * @param Request[]|array $requests The list of Requests or urls.
      * @param Request  $request @deprecated This parameter is not used any more.
