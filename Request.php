@@ -15,12 +15,12 @@ class Request
     /**
      * @var string
      */
-    private $url;
+    private $method;
 
     /**
      * @var string
      */
-    private $method = 'GET';
+    private $url;
 
     /**
      * @var array Form or url query parameters
@@ -42,7 +42,7 @@ class Request
      */
     private $requestBody;
 
-    public function __construct($method = 'GET', $url)
+    public function __construct($method, $url)
     {
         $this->setMethod($method);
         $this->setUrl($url);
@@ -57,6 +57,26 @@ class Request
     /**
      * @return string
      */
+    public function getMethod()
+    {
+        return $this->method;
+    }
+
+    /**
+     * @param string $method
+     *
+     * @return $this
+     */
+    public function setMethod(string $method)
+    {
+        $this->method = strtoupper($method);
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
     public function getUrl()
     {
         return $this->url;
@@ -64,6 +84,7 @@ class Request
 
     /**
      * @param string $url
+     *
      * @return $this
      */
     public function setUrl($url)
@@ -84,6 +105,7 @@ class Request
 
     /**
      * @param array $cookies
+     *
      * @return $this
      */
     public function setCookies($cookies)
@@ -95,6 +117,7 @@ class Request
 
     /**
      * @param string $cookie
+     *
      * @return $this
      */
     public function addCookie($cookie)
@@ -114,6 +137,7 @@ class Request
 
     /**
      * @param array $parameters
+     *
      * @return $this
      */
     public function setParameters(array $parameters)
@@ -126,6 +150,7 @@ class Request
     /**
      * @param string $name
      * @param mixed $value
+     *
      * @return $this
      */
     public function addParameter($name, $value)
@@ -141,25 +166,6 @@ class Request
     public function clearParameters()
     {
         $this->parameters = [];
-    }
-
-    /**
-     * @return string
-     */
-    public function getMethod()
-    {
-        return $this->method;
-    }
-
-    /**
-     * @param string $method
-     * @return $this
-     */
-    public function setMethod($method)
-    {
-        $this->method = strtoupper($method);
-
-        return $this;
     }
 
     /**
@@ -200,7 +206,7 @@ class Request
      */
     private function setContentType($contentType)
     {
-        if (!$this->getHeader('Content-Type') && $contentType) {
+        if ($contentType && !$this->getHeader('Content-Type')) {
             $this->addHeader('Content-Type', $contentType);
         }
     }
@@ -210,13 +216,13 @@ class Request
      */
     private static function validateUrl($url)
     {
-        if (empty($url)) {
-            throw new \InvalidArgumentException('The request url cannot be empty.');
+        if (!$url) {
+            throw new \InvalidArgumentException('Empty request URL.');
         }
 
         if (!is_string($url)) {
             throw new \InvalidArgumentException(sprintf(
-                'The request url must be type of string, but got "%s".', gettype($url)
+                'Invalid type of the request URL. Expected string, but got "%s".', gettype($url)
             ));
         }
     }
