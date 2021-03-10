@@ -96,8 +96,9 @@ class Request
     }
 
     /**
-     * @param string|array $body Content to send with the request. This method overrides the "Content-Type" header.
-     * Allowed body contents:
+     * Sets the request body. This method overrides the "Content-Type" header.
+     *
+     * @param string|array $body The request body. Allowed body contents:
      *  - (string) plain text
      *  - (resource) resource
      *  - (array) with one of the keys:
