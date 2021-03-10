@@ -43,7 +43,10 @@ class RequestBodyCompiler
             return (string) $body;
         }
 
-        throw new \InvalidArgumentException(sprintf('Invalid request body. Expected string or an array with the "json" or "files" key, but got "%s".', gettype($body)));
+        throw new \InvalidArgumentException(sprintf(
+            'Invalid request body. Expected plain text, resource, or an array with the "json" or "files" key, but got %s.',
+            is_array($body) ? sprintf('array with keys: "%s"', join('", "', array_keys($body))) : gettype($body)
+        ));
     }
 
     /**
