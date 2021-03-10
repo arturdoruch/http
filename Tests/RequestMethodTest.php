@@ -4,56 +4,86 @@ namespace ArturDoruch\Http\Tests;
 
 use ArturDoruch\Http\Client;
 use ArturDoruch\Http\Request;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @author Artur Doruch <arturdoruch@interia.pl>
  */
-class RequestMethodTest extends \PHPUnit_Framework_TestCase
+class RequestMethodTest extends TestCase
 {
+    /**
+     * @var Client
+     */
+    private static $client;
+
+    public static function setUpBeforeClass()
+    {
+        self::$client = new Client();
+    }
+
+
     public function testHeadRequest()
     {
-        $client = new Client();
-        $response = $client->request(new Request('HEAD', 'https://httpbin.org/get'));
+        $response = self::$client->request(new Request('HEAD', 'https://httpbin.org/get'));
 
         $this->assertEmpty($response->getBody());
     }
 
+
     public function testGetRequest()
     {
-        $client = new Client();
-        $response = $client->get('https://httpbin.org/get');
+        $response = self::$client->get('https://httpbin.org/get');
 
         $this->assertNotEmpty($response->getBody());
     }
 
 
-    public function testPostFormDataRequest()
+    public function testGetRequestWithQueryParameters()
     {
-        $client = new Client();
-        $response = $client->post('https://httpbin.org/post', $formData = [
+        $request = new Request('GET', 'https://httpbin.org/get');
+        $request->setParameters($queryParameters = [
+            'key' => 'value',
+            'filter' => [
+                'name' => 'foo',
+                'category' => 'language'
+            ]
+        ]);
+
+        $data = $this->sendRequest($request);
+
+        self::assertContains('?', $url = $data['url']);
+
+        preg_match('/^.+\?(.+)$/', $url, $matches);
+        parse_str($matches[1], $parameters);
+
+        self::assertEquals($queryParameters, $parameters);
+    }
+
+
+    public function testPostRequestWithFormData()
+    {
+        $request = new Request('POST', 'https://httpbin.org/post');
+        $request->setParameters($formData = [
             'foo' => 'bar',
             'name' => 'value'
         ]);
 
-        $data = json_decode($response->getBody(), true)['form'];
+        $data = $this->sendRequest($request);
 
-        $this->assertEquals($formData, $data);
+        self::assertEquals($formData, $data['form']);
+        self::assertEquals('application/x-www-form-urlencoded', $data['headers']['Content-Type']);
     }
 
-
-    public function testPostJsonRequest()
+    /**
+     * @param Request $request
+     *
+     * @return array
+     */
+    private function sendRequest(Request $request)
     {
-        $client = new Client();
-        $response = $client->post('https://httpbin.org/post', [], [
-            'json' => $json = [
-                'foo' => 'bar',
-                'name' => 'value'
-            ]
-        ]);
+        $response = self::$client->request($request);
 
-        $data = json_decode($response->getBody(), true)['json'];
-
-        $this->assertEquals($json, $data);
+        return json_decode($response->getBody(), true);
     }
 }
  

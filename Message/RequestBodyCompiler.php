@@ -76,8 +76,8 @@ class RequestBodyCompiler
      */
     private static function compileFiles(array $postFiles, &$contentType)
     {
+        $contentType = 'multipart/form-data; boundary=' . ($boundary = uniqid());
         $content = '';
-        $boundary = uniqid();
 
         foreach ($postFiles as $postFile) {
             if (!$postFile instanceof PostFile) {
@@ -89,8 +89,6 @@ class RequestBodyCompiler
             $content .= "--" . $boundary . "\r\n";
             $content .= self::createMultiPartContent($postFile);
         }
-
-        $contentType = 'multipart/form-data; boundary=' . $boundary;
 
         return $content . "--" . $boundary . "--\r\n";
     }
