@@ -23,14 +23,14 @@ class Request
     private $url;
 
     /**
-     * @var array Form or url query parameters
-     */
-    private $parameters = [];
-
-    /**
-     * @var string|array
+     * @var string
      */
     private $body;
+
+    /**
+     * @var array The form data or URL query parameters.
+     */
+    private $parameters = [];
 
     /**
      * @var array
@@ -78,40 +78,49 @@ class Request
      */
     public function setUrl($url)
     {
-        self::validateUrl($url);
-        $this->url = $url;
+        if (!$url) {
+            throw new \InvalidArgumentException('Empty request URL.');
+        }
+
+        $this->url = (string) $url;
 
         return $this;
     }
 
     /**
-     * @return array
+     * @return string
      */
-    public function getCookies()
+    public function getBody()
     {
-        return $this->cookies;
+        return $this->body;
     }
 
     /**
-     * @param array $cookies
+     * @param string|array $body Content to send with the request. This method overrides the "Content-Type" header.
+     * Allowed body contents:
+     *  - (string) plain text
+     *  - (resource) resource
+     *  - (array) with one of the keys:
+     *    - "json" for sending JSON.
+     *      Usage:
+     *          setBody(['json' => [
+     *              'key' => 'value'
+     *          ]]);
+     *
+     *    - "files" with instances of the "ArturDoruch\Http\Post\PostFile" class for sending the files.
+     *      Usage:
+     *          setBody(['files' => [
+     *              new PostFile($name, $file[, $filename = null])
+     *          ]]);
+     *
+     * @param string $contentType The body content type. If not specified it will be determined based on the body.
      *
      * @return $this
      */
-    public function setCookies($cookies)
+    public function setBody($body, $contentType = '')
     {
-        $this->cookies = $cookies;
-
-        return $this;
-    }
-
-    /**
-     * @param string $cookie
-     *
-     * @return $this
-     */
-    public function addCookie($cookie)
-    {
-        $this->cookies[] = trim($cookie);
+        $this->body = RequestBodyCompiler::compile($body, $bodyContentType);
+        $this->addHeader('Content-Type', $contentType ?: $bodyContentType);
 
         return $this;
     }
@@ -158,57 +167,35 @@ class Request
     }
 
     /**
-     * @return string
+     * @return array
      */
-    public function getBody()
+    public function getCookies()
     {
-        return $this->body;
+        return $this->cookies;
     }
 
     /**
-     * @param string|array $body Content to send with the request. This method overrides the "Content-Type" header.
-     * Allowed body contents:
-     *  - (string) plain text
-     *  - (resource) resource
-     *  - (array) with one of the keys:
-     *    - "json" for sending JSON.
-     *      Usage:
-     *          setBody(['json' => [
-     *              'key' => 'value'
-     *          ]]);
-     *
-     *    - "files" with instances of the "ArturDoruch\Http\Post\PostFile" class for sending the files.
-     *      Usage:
-     *          setBody(['files' => [
-     *              new PostFile($name, $file[, $filename = null])
-     *          ]]);
-     *
-     * @param string $contentType The body content type. If not specified it will be determined based on the body.
+     * @param array $cookies
      *
      * @return $this
      */
-    public function setBody($body, $contentType = '')
+    public function setCookies($cookies)
     {
-        $this->body = RequestBodyCompiler::compile($body, $bodyContentType);
-        $this->addHeader('Content-Type', $contentType ?: $bodyContentType);
+        $this->cookies = $cookies;
 
         return $this;
     }
 
     /**
-     * @param string $url
+     * @param string $cookie
+     *
+     * @return $this
      */
-    private static function validateUrl($url)
+    public function addCookie($cookie)
     {
-        if (!$url) {
-            throw new \InvalidArgumentException('Empty request URL.');
-        }
+        $this->cookies[] = trim($cookie);
 
-        if (!is_string($url)) {
-            throw new \InvalidArgumentException(sprintf(
-                'Invalid type of the request URL. Expected string, but got "%s".', gettype($url)
-            ));
-        }
+        return $this;
     }
 }
  
