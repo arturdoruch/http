@@ -3,6 +3,7 @@
 namespace ArturDoruch\Http\Tests;
 
 use ArturDoruch\Http\Client;
+use ArturDoruch\Http\Message\FormFile;
 use ArturDoruch\Http\Post\PostFile;
 use ArturDoruch\Http\Request;
 use PHPUnit\Framework\TestCase;
@@ -65,7 +66,9 @@ class PostRequestTest extends TestCase
         self::assertArrayHasKey('key', $data['json']);
     }
 
-
+    /**
+     * WARNING: Sending body with the "files" key is deprecated. Use "multipart" key instead.
+     */
     public function testPostFiles()
     {
         $request = new Request('POST', $this->baseUrl . '/post');
@@ -100,6 +103,35 @@ class PostRequestTest extends TestCase
         self::assertEquals('application/x-www-form-urlencoded', $data['headers']['Content-Type']);
         self::assertCount(2, $data['form']);
         self::assertArrayHasKey('filter[name]', $data['form']);
+    }
+
+
+    public function testPostMultipart()
+    {
+        $request = new Request('POST', $this->baseUrl . '/post');
+        $request->setBody([
+            'multipart' => [
+                'name' => 'ńćśężź',
+                'foo' => [
+                    'bar' => 'abc',
+                    'baz' => [
+                        'bar' => [1, 2, 3]
+                    ],
+                ],
+                'textFile' => new FormFile($this->filesDir . '/text.txt', 'my-own-filename.txt'),
+            ],
+        ]);
+
+        $data = $this->sendRequest($request);
+
+        self::assertStringStartsWith('multipart/form-data; boundary=', $data['headers']['Content-Type']);
+
+        self::assertCount(1, $data['files']);
+        self::assertArrayHasKey('textFile', $data['files']);
+
+        self::assertCount(3, $data['form']);
+        self::assertArrayHasKey('foo[baz][bar][]', $data['form']);
+        self::assertCount(3, $data['form']['foo[baz][bar][]']);
     }
 
     /**

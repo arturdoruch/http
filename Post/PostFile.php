@@ -2,25 +2,19 @@
 
 namespace ArturDoruch\Http\Post;
 
+use ArturDoruch\Http\Message\FormFile;
+
 /**
+ * @deprecated Use the "ArturDoruch\Http\Message\FormFile" class instead.
+ *
  * @author Artur Doruch <arturdoruch@interia.pl>
  */
-class PostFile
+class PostFile extends FormFile
 {
     /**
      * @var string
      */
     private $name;
-
-    /**
-     * @var string
-     */
-    private $file;
-
-    /**
-     * @var null|string
-     */
-    private $filename;
 
     /**
      * @param string $name Form name.
@@ -30,8 +24,7 @@ class PostFile
     public function __construct($name, $file, $filename = null)
     {
         $this->name = $name;
-        $this->file = $file;
-        $this->filename = $filename;
+        parent::__construct($file, $filename);
     }
 
     /**
@@ -40,22 +33,6 @@ class PostFile
     public function getName()
     {
         return $this->name;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFile()
-    {
-        return $this->file;
-    }
-
-    /**
-     * @return null|string
-     */
-    public function getFilename()
-    {
-        return $this->filename;
     }
 }
  

@@ -53,7 +53,7 @@ class Client extends AbstractClient
      * @param bool $throwException   It true RequestException will be thrown when response status code is 4xx, 5xx or 0.
      * @param CookieFile $cookieFile Set if you want to store website session cookies into text file.
      */
-    public function __construct(array $curlOptions = array(), $throwException = true, CookieFile $cookieFile = null)
+    public function __construct(array $curlOptions = [], $throwException = true, CookieFile $cookieFile = null)
     {
         $this->cookieFile = $cookieFile;
         $this->options = new Options($cookieFile, $curlOptions);
@@ -173,7 +173,7 @@ class Client extends AbstractClient
      *
      * @return Response
      */
-    public function get($url, array $parameters = array(), array $options = array(), array $curlOptions = array())
+    public function get($url, array $parameters = [], array $options = [], array $curlOptions = [])
     {
         return $this->request($this->createRequest($url, 'GET', $parameters, $options), $curlOptions);
     }
@@ -188,7 +188,7 @@ class Client extends AbstractClient
      *
      * @return Response
      */
-    public function post($url, array $parameters = array(), array $options = array(), array $curlOptions = array())
+    public function post($url, array $parameters = [], array $options = [], array $curlOptions = [])
     {
         return $this->request($this->createRequest($url, 'POST', $parameters, $options), $curlOptions);
     }
@@ -203,7 +203,7 @@ class Client extends AbstractClient
      *
      * @return Response
      */
-    public function patch($url, array $parameters = array(), array $options = array(), array $curlOptions = array())
+    public function patch($url, array $parameters = [], array $options = [], array $curlOptions = [])
     {
         return $this->request($this->createRequest($url, 'PATCH', $parameters, $options), $curlOptions);
     }
@@ -218,7 +218,7 @@ class Client extends AbstractClient
      *
      * @return Response
      */
-    public function put($url, array $parameters = array(), array $options = array(), array $curlOptions = array())
+    public function put($url, array $parameters = [], array $options = [], array $curlOptions = [])
     {
         return $this->request($this->createRequest($url, 'PUT', $parameters, $options), $curlOptions);
     }
@@ -233,7 +233,7 @@ class Client extends AbstractClient
      *
      * @return Response
      */
-    public function delete($url, array $parameters = array(), array $options = array(), array $curlOptions = array())
+    public function delete($url, array $parameters = [], array $options = [], array $curlOptions = [])
     {
         return $this->request($this->createRequest($url, 'DELETE', $parameters, $options), $curlOptions);
     }
@@ -244,7 +244,7 @@ class Client extends AbstractClient
      *
      * @return Response
      */
-    public function request(Request $request, array $curlOptions = array())
+    public function request(Request $request, array $curlOptions = [])
     {
         $this->lastRequest = $request;
         $messageHandler = $this->messageHandlerFactory->create($request, $this->curlOptions + $curlOptions);
@@ -265,7 +265,7 @@ class Client extends AbstractClient
      *
      * @return Response[]
      */
-    public function multiRequest(array $requests, Request $request = null, array $curlOptions = array(), $connections = null, callable $rejectUrl = null)
+    public function multiRequest(array $requests, Request $request = null, array $curlOptions = [], $connections = null, callable $rejectUrl = null)
     {
         if ($connections) {
             $this->setConnections($connections);
@@ -299,12 +299,12 @@ class Client extends AbstractClient
      *
      * @return Request
      */
-    public function createRequest($url, $method = 'GET', array $parameters = array(), array $options = null)
+    public function createRequest($url, $method = 'GET', array $parameters = [], array $options = [])
     {
         $request = new Request($method, $url);
         $request->setParameters($parameters);
 
-        if (!empty($options)) {
+        if ($options) {
             if (isset($options['cookie'])) {
                 $request->addCookie((string) $options['cookie']);
             }
@@ -315,7 +315,7 @@ class Client extends AbstractClient
 
             if (isset($options['body'])) {
                 $request->setBody($options['body']);
-            } elseif (isset($options['json']) || isset($options['files'])) {
+            } elseif (isset($options['json']) || isset($options['multipart'])) {
                 $request->setBody($options);
             }
         }

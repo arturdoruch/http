@@ -4,6 +4,7 @@ namespace ArturDoruch\Http;
 
 use ArturDoruch\Http\Message\MessageTrait;
 use ArturDoruch\Http\Message\RequestBodyCompiler;
+use ArturDoruch\Http\Post\PostFile;
 
 /**
  * @author Artur Doruch <arturdoruch@interia.pl>
@@ -28,7 +29,7 @@ class Request
     private $body;
 
     /**
-     * @var array The form data or URL query parameters.
+     * @var array The form data or URL query parameters depend on the request method.
      */
     private $parameters = [];
 
@@ -96,32 +97,67 @@ class Request
     }
 
     /**
-     * Sets the request body. This method overrides the "Content-Type" header.
+     * Sets the request body.
      *
      * @param string|array $body The request body. Allowed body contents:
+     *
      *  - (string) plain text
      *  - (resource) resource
      *  - (array) with one of the keys:
-     *    - "json" for sending JSON.
+     *    - "json" (array|mixed)
      *      Usage:
-     *          setBody(['json' => [
-     *              'key' => 'value'
-     *          ]]);
+     *          setBody([
+     *              'json' => [
+     *                  'key' => 'value'
+     *              ]
+     *          ]);
      *
-     *    - "files" with instances of the "ArturDoruch\Http\Post\PostFile" class for sending the files.
+     *    - "multipart" (array) (can be multidimensional) for sending multipart form data.
+     *      Usage:
+     *          setBody([
+     *              'multipart' => [
+     *                  'name' => 'value',
+     *                  'categories' => [
+     *                      'animals' => ['dog', 'cat'],
+     *                  ],
+     *                  'file' => new ArturDoruch\Http\Message\FormFile('/path/file.txt.', 'own-file-name.txt')
+     *              ]
+     *          ]);
+     *
+     *    - "files" (array) with instances of the "ArturDoruch\Http\Post\PostFile" class for sending the files.
      *      Usage:
      *          setBody(['files' => [
      *              new PostFile($name, $file[, $filename = null])
      *          ]]);
      *
+     *      NOTE: The option is deprecated. Use "multipart" instead.
+     *
      * @param string $contentType The body content type. If not specified it will be determined based on the body.
+     *                            This parameter overrides the "Content-Type" header.
      *
      * @return $this
      */
     public function setBody($body, $contentType = '')
     {
+        // todo Remove in version 4.
+        if (is_array($body) && isset($body['files'])) {
+            if (is_array($body['files'])) {
+                $body['multipart'] = [];
+                foreach ($body['files'] as $i => $file) {
+                    $body['multipart'][$file instanceof PostFile ? $file->getName() : $i] = $file;
+                }
+            }
+
+            unset($body['files']);
+        }
+
         $this->body = RequestBodyCompiler::compile($body, $bodyContentType);
-        $this->addHeader('Content-Type', $contentType ?: $bodyContentType);
+
+        if ($contentType) {
+            $this->addHeader('Content-Type', $contentType);
+        } elseif (!$this->hasHeader('Content-Type')) {
+            $this->addHeader('Content-Type', $bodyContentType);
+        }
 
         return $this;
     }
