@@ -89,18 +89,18 @@ class Options
             $options[CURLOPT_CUSTOMREQUEST] = $method;
         }
 
-        $isFormMethod = in_array($method, ['POST', 'PUT', 'PATCH']);
+        $postTypeMethod = in_array($method, ['POST', 'PUT', 'PATCH']);
 
-        if ($method !== 'GET' && $method !== 'HEAD') {
+        if ($postTypeMethod || $method === 'DELETE') {
             if ($request->getBody()) {
                 $options[CURLOPT_POSTFIELDS] = $request->getBody();
-            } elseif ($isFormMethod) {
+            } elseif ($postTypeMethod) {
                 $options[CURLOPT_POST] = true;
                 $options[CURLOPT_POSTFIELDS] = http_build_query($parameters);
             }
         }
 
-        if (!$isFormMethod && $parameters) {
+        if (!$postTypeMethod && $parameters) {
             // Add url query from form parameters.
             if (($pos = strpos($url, '?')) !== false) {
                 $url = substr($url, 0, $pos);
@@ -109,8 +109,7 @@ class Options
             $request->setUrl($options[CURLOPT_URL]);
         }
 
-        $cookies = $request->getCookies();
-        if (!empty($cookies)) {
+        if ($cookies = $request->getCookies()) {
             $options[CURLOPT_COOKIE] = join('; ', $cookies);
         }
 
