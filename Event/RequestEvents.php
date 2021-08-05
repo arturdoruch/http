@@ -11,16 +11,16 @@ namespace ArturDoruch\Http\Event;
 final class RequestEvents
 {
     /**
-     * The event occurs just before send HTTP request.
+     * The event dispatched before sending the HTTP request.
      *
-     * @Event
+     * @Event("ArturDoruch\Http\Event\BeforeEvent")
      */
     const BEFORE = 'request.before';
 
     /**
-     * The event occurs when HTTP request is done.
+     * The event dispatched when the HTTP request is sent.
      *
-     * @Event
+     * @Event("ArturDoruch\Http\Event\CompleteEvent")
      */
     const COMPLETE = 'request.complete';
 }
