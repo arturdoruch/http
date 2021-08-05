@@ -4,12 +4,11 @@ namespace ArturDoruch\Http\Event;
 
 use ArturDoruch\Http\Client;
 use ArturDoruch\Http\Request;
-use Symfony\Component\EventDispatcher\Event;
 
 /**
  * @author Artur Doruch <arturdoruch@interia.pl>
  */
-class BeforeEvent extends Event
+class BeforeEvent extends AbstractEvent
 {
     /**
      * @var Request

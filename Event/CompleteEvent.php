@@ -5,12 +5,11 @@ namespace ArturDoruch\Http\Event;
 use ArturDoruch\Http\Client;
 use ArturDoruch\Http\Message\Response;
 use ArturDoruch\Http\Request;
-use Symfony\Component\EventDispatcher\Event;
 
 /**
  * @author Artur Doruch <arturdoruch@interia.pl>
  */
-class CompleteEvent extends Event
+class CompleteEvent extends AbstractEvent
 {
     /**
      * @var Request
