@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
  */
 class PostRequestTest extends TestCase
 {
-    private $filesDir = __DIR__ . '/Resources/files';
+    private $filesDir = __DIR__ . '/Fixtures/files';
     private $baseUrl = 'https://httpbin.org';
 
     /**
