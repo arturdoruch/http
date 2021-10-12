@@ -16,7 +16,10 @@ class EventDispatcher extends \Symfony\Component\EventDispatcher\EventDispatcher
 
     public function __construct()
     {
-        parent::__construct();
+        if (method_exists(get_parent_class($this), '__construct')) {
+            parent::__construct();
+        }
+
         $this->eventArgumentFirst = is_subclass_of($this, EventDispatcherInterface::class);
     }
 
